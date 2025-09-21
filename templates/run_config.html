@@ -1,0 +1,992 @@
+{% extends "base.html" %}
+
+{% block title %}Run Configuration - Tarang{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Left Column - Configuration Form -->
+    <div class="col-6 left-config">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-cog"></i> Simulation Configuration</h3>
+            </div>
+            <div class="card-body">
+                <!-- Step indicator -->
+                <ul class="nav nav-pills justify-content-center mb-3" id="stepIndicator">
+                    <li class="nav-item"><a class="nav-link active" href="#" onclick="goToStep(1); return false;">1. General</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="goToStep(2); return false;">2. Type-Specific</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="goToStep(3); return false;">3. Time & Output</a></li>
+                </ul>
+                <form method="POST" id="configForm">
+                    <!-- STEP 1: General Configuration -->
+                    <div id="step-1">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="machine" class="form-label">Select Machine:</label>
+                                <select class="form-select" id="machine" name="machine" required>
+                                    <option value="Local">Local</option>
+                                    <option value="Benard">Benard Cluster</option>
+                                    <option value="AMD">AMD Cluster</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="device" class="form-label">Device:</label>
+                                <select class="form-select" id="device" name="device" required>
+                                    <option value="CPU">CPU</option>
+                                    <option value="GPU">GPU</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="dimension" class="form-label">Dimension:</label>
+                                <select class="form-select" id="dimension" name="dimension" required onchange="updateGridFields()">
+                                    <option value="3">3D</option>
+                                    <option value="2">2D</option>
+                                    <option value="1">1D</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="kind" class="form-label">Simulation Type:</label>
+                                <select class="form-select" id="kind" name="kind" required onchange="toggleSimulationForms()">
+                                    <option value="HYDRO">HYDRO</option>
+                                    <option value="MHD">MHD</option>
+                                    <option value="RBC">RBC</option>
+                                    <option value="EULER">EULER</option>
+                                    <option value="COARSEN">COARSEN</option>
+                                    <option value="SCALAR">SCALAR</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="nx" class="form-label">Nx:</label>
+                                <input type="number" class="form-control" id="nx" name="nx" value="64" min="1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="ny" class="form-label">Ny:</label>
+                                <input type="number" class="form-control" id="ny" name="ny" value="64" min="1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="nz" class="form-label">Nz:</label>
+                                <input type="number" class="form-control" id="nz" name="nz" value="64" min="1" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="input_path" class="form-label">Input Path:</label>
+                                <input type="text" class="form-control" id="input_path" name="input_path" placeholder="/path/to/input/directory">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="output_path" class="form-label">Output Path:</label>
+                                <input type="text" class="form-control" id="output_path" name="output_path" placeholder="/path/to/output/directory" required>
+                            </div>
+                        </div>
+                        <!-- Buttons for step 1 -->
+                        <div class="row mt-2">
+                            <div class="col-12 d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary" onclick="goToStep(2)">
+                                    Next <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Type-Specific Configuration -->
+                    </div><!-- end of step-1 -->
+                    <!-- STEP 2: Type-Specific Configuration -->
+                    <div id="step-2" style="display:none;">
+                        <!-- HYDRO specific configuration -->
+                        <div id="hydro-form" style="display:none;">
+                        <hr>
+                        <h5>Hydrodynamics Configuration</h5>
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="nu" class="form-label">nu:</label>
+                                    <input type="number" class="form-control" id="nu" name="nu" value="0.01" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Alt Dissipation:</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="alt_dissipation" name="alt_dissipation" value="1">
+                                        <label class="form-check-label" for="alt_dissipation">Enable</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Forcing Enabled:</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="forcing_enabled" name="forcing_enabled" value="1">
+                                        <label class="form-check-label" for="forcing_enabled">Enable</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="nu_hypo" class="form-label">nu hypo:</label>
+                                    <input type="number" class="form-control" id="nu_hypo" name="nu_hypo" value="8.1" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="nu_hypo_power" class="form-label">nu hypo power:</label>
+                                    <input type="number" class="form-control" id="nu_hypo_power" name="nu_hypo_power" value="-2" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="nu_hyper" class="form-label">nu hyper:</label>
+                                    <input type="number" class="form-control" id="nu_hyper" name="nu_hyper" value="0" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="nu_hyper_power" class="form-label">nu hyper power:</label>
+                                    <input type="number" class="form-control" id="nu_hyper_power" name="nu_hyper_power" value="25" step="any">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="forcing_range" class="form-label">Forcing Range:</label>
+                                    <input type="text" class="form-control" id="forcing_range" name="forcing_range" value="[4, 5]">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="injection_rate" class="form-label">Injection rate:</label>
+                                    <input type="number" class="form-control" id="injection_rate" name="injection_rate" value="0.05" step="any">
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+
+                        <!-- MHD specific configuration -->
+                        <div id="mhd-form" style="display:none;">
+                        <hr>
+                        <h5>Magnetohydrodynamics Configuration</h5>
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="mhd_nu" class="form-label">nu:</label>
+                                    <input type="number" class="form-control" id="mhd_nu" name="nu" value="0.02" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="eta" class="form-label">eta:</label>
+                                    <input type="number" class="form-control" id="eta" name="eta" value="0.02" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Enable Forcing:</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enable_forcing" name="enable_forcing" value="1">
+                                        <label class="form-check-label" for="enable_forcing">Enable</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="nu_hypo" class="form-label">nu hypo:</label>
+                                    <input type="number" class="form-control" id="mhd_nu_hypo" name="nu_hypo" value="0.1" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="nu_hypo_power" class="form-label">nu hypo power:</label>
+                                    <input type="number" class="form-control" id="mhd_nu_hypo_power" name="nu_hypo_power" value="-2" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="nu_hyper" class="form-label">nu hyper:</label>
+                                    <input type="number" class="form-control" id="mhd_nu_hyper" name="nu_hyper" value="0" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="nu_hyper_power" class="form-label">nu hyper power:</label>
+                                    <input type="number" class="form-control" id="mhd_nu_hyper_power" name="nu_hyper_power" value="25" step="any">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="eta_hypo" class="form-label">eta hypo:</label>
+                                    <input type="number" class="form-control" id="eta_hypo" name="eta_hypo" value="0.1" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="eta_hypo_power" class="form-label">eta hypo power:</label>
+                                    <input type="number" class="form-control" id="eta_hypo_power" name="eta_hypo_power" value="-2" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="eta_hyper" class="form-label">eta hyper:</label>
+                                    <input type="number" class="form-control" id="eta_hyper" name="eta_hyper" value="0" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="eta_hyper_power" class="form-label">eta hyper power:</label>
+                                    <input type="number" class="form-control" id="eta_hyper_power" name="eta_hyper_power" value="-25" step="any">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="forcing_range" class="form-label">Forcing Range:</label>
+                                    <input type="text" class="form-control" id="mhd_forcing_range" name="forcing_range" value="[4, 5]">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="injection_eplus" class="form-label">Injection eplus:</label>
+                                    <input type="number" class="form-control" id="injection_eplus" name="injection_eplus" value="0.0" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="injection_eminus" class="form-label">Injection eminus:</label>
+                                    <input type="number" class="form-control" id="injection_eminus" name="injection_eminus" value="0.0" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="injection_er" class="form-label">Injection er:</label>
+                                    <input type="number" class="form-control" id="injection_er" name="injection_er" value="0.0" step="any">
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+
+                        <!-- Buttons for step 2 -->
+                        <div class="row mt-2">
+                            <div class="col-12 d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" onclick="goToStep(1)">
+                                    <i class="fas fa-arrow-left"></i> Back
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="goToStep(3)">
+                                    Next <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Final configuration -->
+                    <div id="step-3" style="display:none;">
+                        <div id="final-form">
+                        <hr>
+                        <h5>Time and Output Configuration</h5>
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="initial_time" class="form-label">Initial Time:</label>
+                                    <input type="number" class="form-control" id="initial_time" name="initial_time" value="0" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="final_time" class="form-label">Final Time:</label>
+                                    <input type="number" class="form-control" id="final_time" name="final_time" value="0.01" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="dt" class="form-label">Time Step (dt):</label>
+                                    <input type="number" class="form-control" id="dt" name="dt" value="0.001" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="time_scheme" class="form-label">Time Scheme:</label>
+                                    <select class="form-select" id="time_scheme" name="time_scheme">
+                                        <option value="EULER" selected>EULER</option>
+                                        <option value="RK2">RK2</option>
+                                        <option value="RK4">RK4</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Fixed Time Step:</label>
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="fixed_dt" name="fixed_dt" value="1" checked>
+                                        <label class="form-check-label" for="fixed_dt">Enable Fixed Time Step</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="courant_no" class="form-label">Courant Number:</label>
+                                    <input type="number" class="form-control" id="courant_no" name="courant_no" value="0.5" step="any">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="modes_save" class="form-label">Modes to Save:</label>
+                                    <input type="text" class="form-control" id="modes_save" name="modes_save" value="(1,0,0),(0,0,1)" placeholder="Enter modes as tuples, e.g., (1,0,0),(0,0,1)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="field_save_start" class="form-label">Field Save Start:</label>
+                                    <input type="number" class="form-control" id="field_save_start" name="field_save_start" value="0" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="field_save_interval" class="form-label">Field Save Interval:</label>
+                                    <input type="number" class="form-control" id="field_save_interval" name="field_save_interval" value="500" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="energy_print_start" class="form-label">Energy Print Start:</label>
+                                    <input type="number" class="form-control" id="energy_print_start" name="energy_print_start" value="0" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="energy_print_interval" class="form-label">Energy Print Interval:</label>
+                                    <input type="number" class="form-control" id="energy_print_interval" name="energy_print_interval" value="1" step="any">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="ektk_save_start" class="form-label">EkTk Save Start:</label>
+                                    <input type="number" class="form-control" id="ektk_save_start" name="ektk_save_start" value="0" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="ektk_save_interval" class="form-label">EkTk Save Interval:</label>
+                                    <input type="number" class="form-control" id="ektk_save_interval" name="ektk_save_interval" value="100" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="modes_save_start" class="form-label">Modes Save Start:</label>
+                                    <input type="number" class="form-control" id="modes_save_start" name="modes_save_start" value="0" step="any">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="modes_save_interval" class="form-label">Modes Save Interval:</label>
+                                    <input type="number" class="form-control" id="modes_save_interval" name="modes_save_interval" value="200" step="any">
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+
+                        <!-- Buttons for step 3 -->
+                        <div class="row mt-2">
+                            <div class="col-12 d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" onclick="goToStep(2)">
+                                    <i class="fas fa-arrow-left"></i> Back
+                                </button>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-play"></i> Run
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - para.py Editor -->
+    <div class="col-6 right-para">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3><i class="fas fa-file-code"></i> para.py Editor</h3>
+                <div>
+                    <span id="saveStatus" class="badge bg-secondary">Ready</span>
+                    <button type="button" class="btn btn-sm btn-outline-warning" onclick="loadDefaultPara()">
+                        <i class="fas fa-undo"></i> Load Default
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0" id="paraCardBody">
+                <textarea id="paraEditor" class="form-control border-0" style="font-family: 'Courier New', monospace; font-size: 12px; height: 100%; resize: none; overflow: auto;">{{ para_content }}</textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let saveTimeout;
+let isUpdatingFromPara = false;
+let currentStep = 1;
+let savingFromForm = false;
+
+function setSectionEnabled(sectionId, enabled) {
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+    const inputs = section.querySelectorAll('input, select, textarea');
+    inputs.forEach(el => {
+        el.disabled = !enabled;
+    });
+}
+
+function toggleSimulationForms() {
+    const kind = document.getElementById('kind').value;
+    const hydro = document.getElementById('hydro-form');
+    const mhd = document.getElementById('mhd-form');
+
+    if (kind === 'HYDRO') {
+        if (hydro) hydro.style.display = '';
+        if (mhd) mhd.style.display = 'none';
+        setSectionEnabled('hydro-form', true);
+        setSectionEnabled('mhd-form', false);
+    } else if (kind === 'MHD') {
+        if (hydro) hydro.style.display = 'none';
+        if (mhd) mhd.style.display = '';
+        setSectionEnabled('hydro-form', false);
+        setSectionEnabled('mhd-form', true);
+    } else {
+        if (hydro) hydro.style.display = 'none';
+        if (mhd) mhd.style.display = 'none';
+        setSectionEnabled('hydro-form', false);
+        setSectionEnabled('mhd-form', false);
+    }
+
+    if (!isUpdatingFromPara) {
+        updateParaFromForm();
+    }
+    syncEditorHeight();
+}
+
+function goToStep(step) {
+    // Clamp step to 1..3
+    currentStep = Math.max(1, Math.min(3, step));
+    const s1 = document.getElementById('step-1');
+    const s2 = document.getElementById('step-2');
+    const s3 = document.getElementById('step-3');
+    if (s1) s1.style.display = (currentStep === 1) ? '' : 'none';
+    if (s2) s2.style.display = (currentStep === 2) ? '' : 'none';
+    if (s3) s3.style.display = (currentStep === 3) ? '' : 'none';
+
+    // Update nav pill active state
+    const pills = document.querySelectorAll('#stepIndicator .nav-link');
+    pills.forEach((p, idx) => {
+        if (idx === currentStep - 1) p.classList.add('active'); else p.classList.remove('active');
+    });
+
+    // Ensure type-specific visibility is correct when entering Step 2
+    if (currentStep === 2) {
+        toggleSimulationForms();
+    }
+    syncEditorHeight();
+}
+
+function updateGridFields() {
+    const dimension = document.getElementById('dimension').value;
+    const nx = document.getElementById('nx');
+    const ny = document.getElementById('ny');
+    const nz = document.getElementById('nz');
+    
+    if (dimension === '1') {
+        nx.value = '1';
+        ny.value = '1';
+        nx.disabled = true;
+        ny.disabled = true;
+        nz.disabled = false;
+    } else if (dimension === '2') {
+        nx.value = '64';
+        ny.value = '1';
+        nx.disabled = false;
+        ny.disabled = true;
+        nz.disabled = false;
+    } else {
+        nx.value = '64';
+        ny.value = '64';
+        nx.disabled = false;
+        ny.disabled = false;
+        nz.disabled = false;
+    }
+    
+    // Update para.py when form changes
+    if (!isUpdatingFromPara) {
+        updateParaFromForm();
+    }
+}
+
+function updateParaFromForm() {
+    if (isUpdatingFromPara) return;
+    
+    const formData = {
+        device: document.getElementById('device').value,
+        dimension: document.getElementById('dimension').value,
+        kind: document.getElementById('kind').value,
+        nx: document.getElementById('nx').value,
+        ny: document.getElementById('ny').value,
+        nz: document.getElementById('nz').value,
+        input_path: document.getElementById('input_path').value,
+        output_path: document.getElementById('output_path').value,
+        // Final/time/output fields
+        initial_time: document.getElementById('initial_time') ? document.getElementById('initial_time').value : undefined,
+        final_time: document.getElementById('final_time') ? document.getElementById('final_time').value : undefined,
+        dt: document.getElementById('dt') ? document.getElementById('dt').value : undefined,
+        time_scheme: document.getElementById('time_scheme') ? document.getElementById('time_scheme').value : undefined,
+        fixed_dt: document.getElementById('fixed_dt') ? document.getElementById('fixed_dt').checked : undefined,
+        courant_no: document.getElementById('courant_no') ? document.getElementById('courant_no').value : undefined,
+        modes_save: document.getElementById('modes_save') ? document.getElementById('modes_save').value : undefined,
+        field_save_start: document.getElementById('field_save_start') ? document.getElementById('field_save_start').value : undefined,
+        field_save_interval: document.getElementById('field_save_interval') ? document.getElementById('field_save_interval').value : undefined,
+        energy_print_start: document.getElementById('energy_print_start') ? document.getElementById('energy_print_start').value : undefined,
+        energy_print_interval: document.getElementById('energy_print_interval') ? document.getElementById('energy_print_interval').value : undefined,
+        ektk_save_start: document.getElementById('ektk_save_start') ? document.getElementById('ektk_save_start').value : undefined,
+        ektk_save_interval: document.getElementById('ektk_save_interval') ? document.getElementById('ektk_save_interval').value : undefined,
+        modes_save_start: document.getElementById('modes_save_start') ? document.getElementById('modes_save_start').value : undefined,
+        modes_save_interval: document.getElementById('modes_save_interval') ? document.getElementById('modes_save_interval').value : undefined,
+        // HYDRO
+        hydro_nu: document.getElementById('nu') ? document.getElementById('nu').value : undefined,
+        alt_dissipation: document.getElementById('alt_dissipation') ? document.getElementById('alt_dissipation').checked : undefined,
+        forcing_enabled: document.getElementById('forcing_enabled') ? document.getElementById('forcing_enabled').checked : undefined,
+        nu_hypo: document.getElementById('nu_hypo') ? document.getElementById('nu_hypo').value : undefined,
+        nu_hypo_power: document.getElementById('nu_hypo_power') ? document.getElementById('nu_hypo_power').value : undefined,
+        nu_hyper: document.getElementById('nu_hyper') ? document.getElementById('nu_hyper').value : undefined,
+        nu_hyper_power: document.getElementById('nu_hyper_power') ? document.getElementById('nu_hyper_power').value : undefined,
+        forcing_range: document.getElementById('forcing_range') ? document.getElementById('forcing_range').value : undefined,
+        injection_rate: document.getElementById('injection_rate') ? document.getElementById('injection_rate').value : undefined,
+        // MHD
+        mhd_nu: document.getElementById('mhd_nu') ? document.getElementById('mhd_nu').value : undefined,
+        eta: document.getElementById('eta') ? document.getElementById('eta').value : undefined,
+        enable_forcing: document.getElementById('enable_forcing') ? document.getElementById('enable_forcing').checked : undefined,
+        mhd_nu_hypo: document.getElementById('mhd_nu_hypo') ? document.getElementById('mhd_nu_hypo').value : undefined,
+        mhd_nu_hypo_power: document.getElementById('mhd_nu_hypo_power') ? document.getElementById('mhd_nu_hypo_power').value : undefined,
+        mhd_nu_hyper: document.getElementById('mhd_nu_hyper') ? document.getElementById('mhd_nu_hyper').value : undefined,
+        mhd_nu_hyper_power: document.getElementById('mhd_nu_hyper_power') ? document.getElementById('mhd_nu_hyper_power').value : undefined,
+        eta_hypo: document.getElementById('eta_hypo') ? document.getElementById('eta_hypo').value : undefined,
+        eta_hypo_power: document.getElementById('eta_hypo_power') ? document.getElementById('eta_hypo_power').value : undefined,
+        eta_hyper: document.getElementById('eta_hyper') ? document.getElementById('eta_hyper').value : undefined,
+        eta_hyper_power: document.getElementById('eta_hyper_power') ? document.getElementById('eta_hyper_power').value : undefined,
+        mhd_forcing_range: document.getElementById('mhd_forcing_range') ? document.getElementById('mhd_forcing_range').value : undefined,
+        injection_eplus: document.getElementById('injection_eplus') ? document.getElementById('injection_eplus').value : undefined,
+        injection_eminus: document.getElementById('injection_eminus') ? document.getElementById('injection_eminus').value : undefined,
+        injection_er: document.getElementById('injection_er') ? document.getElementById('injection_er').value : undefined,
+    };
+    
+    // Update para.py content
+    let paraContent = document.getElementById('paraEditor').value;
+    
+    // Update each parameter in para.py
+    paraContent = updateParaParameter(paraContent, 'device', `'${formData.device}'`);
+    paraContent = updateParaParameter(paraContent, 'dimension', formData.dimension);
+    paraContent = updateParaParameter(paraContent, 'kind', `'${formData.kind}'`);
+    paraContent = updateParaParameter(paraContent, 'Nx', formData.nx);
+    paraContent = updateParaParameter(paraContent, 'Ny', formData.ny);
+    paraContent = updateParaParameter(paraContent, 'Nz', formData.nz);
+    paraContent = updateParaParameter(paraContent, 'input_dir', `'${formData.input_path}'`);
+    paraContent = updateParaParameter(paraContent, 'output_dir', `'${formData.output_path}'`);
+    // Write final/time/output fields if present
+    if (formData.initial_time !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['t_initial','initial_time'], formData.initial_time);
+    if (formData.final_time !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['t_final','final_time'], formData.final_time);
+    if (formData.dt !== undefined) paraContent = updateParaParameter(paraContent, 'dt', formData.dt);
+    if (formData.time_scheme !== undefined) paraContent = updateParaParameter(paraContent, 'time_scheme', `'${formData.time_scheme}'`);
+    if (formData.fixed_dt !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['FIXED_DT','fixed_dt'], formData.fixed_dt ? 'True' : 'False');
+    // Handle both Courant_no and courant_no cases in both directions
+    if (formData.courant_no !== undefined) {
+        paraContent = updateParaParameterWithAliases(paraContent, ['Courant_no', 'courant_no'], formData.courant_no);
+    }
+    if (formData.modes_save !== undefined) {
+        // Detect if existing modes_save in para is a tuple/list form; if so, do not quote
+        const existing = (/^\s*modes_save\s*=\s*(.*)$/m.exec(paraContent) || [])[1] || '';
+        const looksLikeTuple = existing.trim().startsWith('(') || existing.trim().startsWith('[');
+        paraContent = updateParaParameter(paraContent, 'modes_save', looksLikeTuple ? `${formData.modes_save}` : `'${formData.modes_save}'`);
+    }
+    if (formData.field_save_start !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['field_save_start','iter_field_save_start'], formData.field_save_start);
+    if (formData.field_save_interval !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['field_save_interval','iter_field_save_inter'], formData.field_save_interval);
+    if (formData.energy_print_start !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['energy_print_start','iter_glob_energy_print_start'], formData.energy_print_start);
+    if (formData.energy_print_interval !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['energy_print_interval','iter_glob_energy_print_inter'], formData.energy_print_interval);
+    if (formData.ektk_save_start !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['ektk_save_start','iter_ekTk_save_start'], formData.ektk_save_start);
+    if (formData.ektk_save_interval !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['ektk_save_interval','iter_ekTk_save_inter'], formData.ektk_save_interval);
+    if (formData.modes_save_start !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['modes_save_start','iter_modes_save_start'], formData.modes_save_start);
+    if (formData.modes_save_interval !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['modes_save_interval','iter_modes_save_inter'], formData.modes_save_interval);
+
+    // HYDRO/MHD: write fields preserving alias if present in para
+    if (formData.kind === 'HYDRO') {
+        // Hydrodynamics
+        if (formData.hydro_nu !== undefined) paraContent = updateParaParameter(paraContent, 'nu', formData.hydro_nu);
+        if (formData.alt_dissipation !== undefined) paraContent = updateParaParameter(paraContent, 'alt_dissipation', formData.alt_dissipation ? 'True' : 'False');
+        if (formData.forcing_enabled !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['FORCING_ENABLED','enable_forcing','forcing_enabled','FORCING'], formData.forcing_enabled ? 'True' : 'False');
+        if (formData.nu_hypo !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['nu_hypo','NU_HYPO'], formData.nu_hypo);
+        if (formData.nu_hypo_power !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['nu_hypo_power','NU_HYPO_POWER'], formData.nu_hypo_power);
+        if (formData.nu_hyper !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['nu_hyper','NU_HYPER'], formData.nu_hyper);
+        if (formData.nu_hyper_power !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['nu_hyper_power','NU_HYPER_POWER'], formData.nu_hyper_power);
+        if (formData.forcing_range !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['forcing_range','FORCING_RANGE'], `${formData.forcing_range}`);
+        if (formData.injection_rate !== undefined) paraContent = updateParaParameter(paraContent, 'injection_rate', formData.injection_rate);
+    }
+    if (formData.kind === 'MHD') {
+        // MHD specific
+        if (formData.mhd_nu !== undefined) paraContent = updateParaParameter(paraContent, 'nu', formData.mhd_nu);
+        if (formData.eta !== undefined) paraContent = updateParaParameter(paraContent, 'eta', formData.eta);
+        if (formData.enable_forcing !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['FORCING_ENABLED','enable_forcing','forcing_enabled','FORCING'], formData.enable_forcing ? 'True' : 'False');
+        if (formData.mhd_nu_hypo !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['nu_hypo','NU_HYPO'], formData.mhd_nu_hypo);
+        if (formData.mhd_nu_hypo_power !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['nu_hypo_power','NU_HYPO_POWER'], formData.mhd_nu_hypo_power);
+        if (formData.mhd_nu_hyper !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['nu_hyper','NU_HYPER'], formData.mhd_nu_hyper);
+        if (formData.mhd_nu_hyper_power !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['nu_hyper_power','NU_HYPER_POWER'], formData.mhd_nu_hyper_power);
+        if (formData.eta_hypo !== undefined) paraContent = updateParaParameter(paraContent, 'eta_hypo', formData.eta_hypo);
+        if (formData.eta_hypo_power !== undefined) paraContent = updateParaParameter(paraContent, 'eta_hypo_power', formData.eta_hypo_power);
+        if (formData.eta_hyper !== undefined) paraContent = updateParaParameter(paraContent, 'eta_hyper', formData.eta_hyper);
+        if (formData.eta_hyper_power !== undefined) paraContent = updateParaParameter(paraContent, 'eta_hyper_power', formData.eta_hyper_power);
+        if (formData.mhd_forcing_range !== undefined) paraContent = updateParaParameterWithAliases(paraContent, ['forcing_range','FORCING_RANGE'], `${formData.mhd_forcing_range}`);
+    }
+    // Injections group (array form if present)
+    if (formData.injection_eplus !== undefined || formData.injection_eminus !== undefined || formData.injection_er !== undefined) {
+        paraContent = updateInjectionsArray(paraContent,
+            formData.injection_eplus ?? 0,
+            formData.injection_eminus ?? 0,
+            formData.injection_er ?? 0
+        );
+        // Also write individual lines if they exist in file
+        if (/^injection_eplus\s*=.*$/m.test(paraContent)) paraContent = updateParaParameter(paraContent, 'injection_eplus', formData.injection_eplus ?? 0);
+        if (/^injection_eminus\s*=.*$/m.test(paraContent)) paraContent = updateParaParameter(paraContent, 'injection_eminus', formData.injection_eminus ?? 0);
+        if (/^injection_er\s*=.*$/m.test(paraContent)) paraContent = updateParaParameter(paraContent, 'injection_er', formData.injection_er ?? 0);
+    }
+    
+    document.getElementById('paraEditor').value = paraContent;
+    
+    // Auto-save para.py
+    savingFromForm = true;
+    autoSavePara();
+}
+
+function updateParaParameter(content, paramName, value) {
+    const regex = new RegExp(`^\\s*${paramName}\\s*=.*$`, 'm');
+    const newLine = `${paramName} = ${value}`;
+    
+    if (regex.test(content)) {
+        return content.replace(regex, (m) => m.replace(/^(\s*).*/, `$1${newLine}`));
+    } else {
+        // If parameter doesn't exist, add it at the end
+        return content + `\n${newLine}`;
+    }
+}
+
+function updateParaParameterWithAliases(content, names, value) {
+    // Try to update whichever alias exists first; otherwise write using the first name
+    for (const name of names) {
+        const regex = new RegExp(`^\\s*${name}\\s*=.*$`, 'm');
+        if (regex.test(content)) {
+            return content.replace(regex, (m) => m.replace(/^(\s*).*/, `$1${name} = ${value}`));
+        }
+    }
+    // None existed; use the primary name
+    return content + `\n${names[0]} = ${value}`;
+}
+
+function updateInjectionsArray(content, eplus, eminus, er) {
+    const regex = /^\s*injections\s*=.*$/m;
+    const line = `injections = [${eplus}, ${eminus}, ${er}]`;
+    if (regex.test(content)) {
+        return content.replace(regex, (m) => m.replace(/^(\s*).*/, `$1${line}`));
+    }
+    return content + `\n${line}`;
+}
+
+function autoSavePara() {
+    clearTimeout(saveTimeout);
+    document.getElementById('saveStatus').textContent = 'Saving...';
+    document.getElementById('saveStatus').className = 'badge bg-warning';
+    
+    saveTimeout = setTimeout(() => {
+        const content = document.getElementById('paraEditor').value;
+        
+        fetch('/save_para_content', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ content: content })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('saveStatus').textContent = 'Saved';
+                document.getElementById('saveStatus').className = 'badge bg-success';
+                
+                // Update form fields from parsed parameters
+                if (data.params && !isUpdatingFromPara && !savingFromForm) {
+                    isUpdatingFromPara = true;
+                    updateFormFromPara(data.params);
+                    toggleSimulationForms();
+                    isUpdatingFromPara = false;
+                }
+                // reset flag after a save completes
+                savingFromForm = false;
+            } else {
+                document.getElementById('saveStatus').textContent = 'Error';
+                document.getElementById('saveStatus').className = 'badge bg-danger';
+                console.error('Save error:', data.error);
+            }
+        })
+        .catch(error => {
+            document.getElementById('saveStatus').textContent = 'Error';
+            document.getElementById('saveStatus').className = 'badge bg-danger';
+            console.error('Save error:', error);
+        });
+    }, 1000); // Auto-save after 1 second of inactivity
+}
+
+function updateFormFromPara(params) {
+    if (params.device) document.getElementById('device').value = params.device;
+    if (params.dimension) document.getElementById('dimension').value = params.dimension;
+    if (params.kind) document.getElementById('kind').value = params.kind;
+    if (params.nx) document.getElementById('nx').value = params.nx;
+    if (params.ny) document.getElementById('ny').value = params.ny;
+    if (params.nz) document.getElementById('nz').value = params.nz;
+    if (params.input_path) document.getElementById('input_path').value = params.input_path;
+    if (params.output_path) document.getElementById('output_path').value = params.output_path;
+    // Final/time/output fields
+    if (params.t_initial !== undefined) document.getElementById('initial_time').value = params.t_initial;
+    if (params.initial_time !== undefined) document.getElementById('initial_time').value = params.initial_time;
+    if (params.t_final !== undefined) document.getElementById('final_time').value = params.t_final;
+    if (params.final_time !== undefined) document.getElementById('final_time').value = params.final_time;
+    if (params.dt !== undefined) document.getElementById('dt').value = params.dt;
+    if (params.time_scheme !== undefined) document.getElementById('time_scheme').value = params.time_scheme.replace(/'/g, '');
+    if (params.FIXED_DT !== undefined) document.getElementById('fixed_dt').checked = params.FIXED_DT === true || params.FIXED_DT === 'True' || params.FIXED_DT === 'true';
+    if (params.fixed_dt !== undefined) document.getElementById('fixed_dt').checked = params.fixed_dt === true || params.fixed_dt === 'True' || params.fixed_dt === 'true';
+    // Handle both Courant_no and courant_no cases
+    if (params.Courant_no !== undefined && document.getElementById('courant_no')) {
+        document.getElementById('courant_no').value = params.Courant_no;
+    } else if (params.courant_no !== undefined && document.getElementById('courant_no')) {
+        document.getElementById('courant_no').value = params.courant_no;
+    }
+    if (params.modes_save && document.getElementById('modes_save')) document.getElementById('modes_save').value = params.modes_save;
+    if (params.field_save_start !== undefined && document.getElementById('field_save_start')) document.getElementById('field_save_start').value = params.field_save_start;
+    if (params.field_save_interval !== undefined && document.getElementById('field_save_interval')) document.getElementById('field_save_interval').value = params.field_save_interval;
+    if (params.energy_print_start !== undefined && document.getElementById('energy_print_start')) document.getElementById('energy_print_start').value = params.energy_print_start;
+    if (params.energy_print_interval !== undefined && document.getElementById('energy_print_interval')) document.getElementById('energy_print_interval').value = params.energy_print_interval;
+    if (params.ektk_save_start !== undefined && document.getElementById('ektk_save_start')) document.getElementById('ektk_save_start').value = params.ektk_save_start;
+    if (params.ektk_save_interval !== undefined && document.getElementById('ektk_save_interval')) document.getElementById('ektk_save_interval').value = params.ektk_save_interval;
+    if (params.modes_save_start !== undefined && document.getElementById('modes_save_start')) document.getElementById('modes_save_start').value = params.modes_save_start;
+    if (params.modes_save_interval !== undefined && document.getElementById('modes_save_interval')) document.getElementById('modes_save_interval').value = params.modes_save_interval;
+    // HYDRO/MHD back-fill
+    if (document.getElementById('nu')) document.getElementById('nu').value = params.nu !== undefined ? params.nu : (document.getElementById('nu').value || '0.01');
+    if (document.getElementById('alt_dissipation') && params.alt_dissipation !== undefined) document.getElementById('alt_dissipation').checked = !!params.alt_dissipation;
+    if (document.getElementById('forcing_enabled') && (params.forcing_enabled !== undefined)) document.getElementById('forcing_enabled').checked = !!params.forcing_enabled;
+    if (document.getElementById('nu_hypo') && params.nu_hypo !== undefined) document.getElementById('nu_hypo').value = params.nu_hypo;
+    if (document.getElementById('nu_hypo_power') && params.nu_hypo_power !== undefined) document.getElementById('nu_hypo_power').value = params.nu_hypo_power;
+    if (document.getElementById('nu_hyper') && params.nu_hyper !== undefined) document.getElementById('nu_hyper').value = params.nu_hyper;
+    if (document.getElementById('nu_hyper_power') && params.nu_hyper_power !== undefined) document.getElementById('nu_hyper_power').value = params.nu_hyper_power;
+    if (document.getElementById('forcing_range') && params.forcing_range !== undefined) document.getElementById('forcing_range').value = params.forcing_range;
+    if (document.getElementById('injection_rate') && params.injection_rate !== undefined) document.getElementById('injection_rate').value = params.injection_rate;
+    if (document.getElementById('mhd_nu') && params.nu !== undefined) document.getElementById('mhd_nu').value = params.nu;
+    if (document.getElementById('eta') && params.eta !== undefined) document.getElementById('eta').value = params.eta;
+    if (document.getElementById('enable_forcing') && (params.forcing_enabled !== undefined)) document.getElementById('enable_forcing').checked = !!params.forcing_enabled;
+    if (document.getElementById('mhd_nu_hypo') && params.nu_hypo !== undefined) document.getElementById('mhd_nu_hypo').value = params.nu_hypo;
+    if (document.getElementById('mhd_nu_hypo_power') && params.nu_hypo_power !== undefined) document.getElementById('mhd_nu_hypo_power').value = params.nu_hypo_power;
+    if (document.getElementById('mhd_nu_hyper') && params.nu_hyper !== undefined) document.getElementById('mhd_nu_hyper').value = params.nu_hyper;
+    if (document.getElementById('mhd_nu_hyper_power') && params.nu_hyper_power !== undefined) document.getElementById('mhd_nu_hyper_power').value = params.nu_hyper_power;
+    if (document.getElementById('eta_hypo') && params.eta_hypo !== undefined) document.getElementById('eta_hypo').value = params.eta_hypo;
+    if (document.getElementById('eta_hypo_power') && params.eta_hypo_power !== undefined) document.getElementById('eta_hypo_power').value = params.eta_hypo_power;
+    if (document.getElementById('eta_hyper') && params.eta_hyper !== undefined) document.getElementById('eta_hyper').value = params.eta_hyper;
+    if (document.getElementById('eta_hyper_power') && params.eta_hyper_power !== undefined) document.getElementById('eta_hyper_power').value = params.eta_hyper_power;
+    if (document.getElementById('mhd_forcing_range') && params.forcing_range !== undefined) document.getElementById('mhd_forcing_range').value = params.forcing_range;
+    if (document.getElementById('injection_eplus') && params.injection_eplus !== undefined) document.getElementById('injection_eplus').value = params.injection_eplus;
+    if (document.getElementById('injection_eminus') && params.injection_eminus !== undefined) document.getElementById('injection_eminus').value = params.injection_eminus;
+    if (document.getElementById('injection_er') && params.injection_er !== undefined) document.getElementById('injection_er').value = params.injection_er;
+}
+
+function refreshParaContent() {
+    fetch('/get_para_content')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('paraEditor').value = data.content;
+            document.getElementById('saveStatus').textContent = 'Refreshed';
+            document.getElementById('saveStatus').className = 'badge bg-info';
+            syncEditorHeight();
+            // Update form and section visibility from refreshed para
+            try {
+                const parsed = window.lastParsedParams; // best effort if stored
+                toggleSimulationForms();
+            } catch (_) {}
+        } else {
+            console.error('Refresh error:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Refresh error:', error);
+    });
+}
+
+function syncEditorHeight() {
+    // Match right card body height to left card's full card height minus header
+    const leftCard = document.querySelector('.left-config .card');
+    const rightCard = document.querySelector('.right-para .card');
+    const rightHeader = rightCard ? rightCard.querySelector('.card-header') : null;
+    const rightBody = document.getElementById('paraCardBody');
+    if (!leftCard || !rightBody) return;
+    const leftH = leftCard.offsetHeight;
+    const headerH = rightHeader ? rightHeader.offsetHeight : 0;
+    const targetBodyH = Math.max(200, leftH - headerH); // keep a reasonable min height
+    rightBody.style.height = targetBodyH + 'px';
+}
+
+async function loadDefaultPara() {
+    try {
+        const resp = await fetch('/load_default_para', { method: 'POST' });
+        const data = await resp.json();
+        if (data.success) {
+            // Hold the guard for the entire revert flow to avoid form->para writebacks
+            isUpdatingFromPara = true;
+            const editor = document.getElementById('paraEditor');
+            if (editor) editor.value = data.content;
+            const status = document.getElementById('saveStatus');
+            if (status) { status.textContent = 'Default Loaded'; status.className = 'badge bg-info'; }
+            // Update form from default params
+            if (data.params) {
+                updateFormFromPara(data.params);
+            }
+            // Update visibility but suppress updateParaFromForm due to guard
+            toggleSimulationForms();
+            syncEditorHeight();
+        } else {
+            const status = document.getElementById('saveStatus');
+            if (status) { status.textContent = 'Error'; status.className = 'badge bg-danger'; }
+            console.error('Load default error:', data.error);
+        }
+    } catch (e) {
+        const status = document.getElementById('saveStatus');
+        if (status) { status.textContent = 'Error'; status.className = 'badge bg-danger'; }
+        console.error('Load default error:', e);
+    } finally {
+        isUpdatingFromPara = false;
+    }
+}
+
+async function initSyncFromPara() {
+    try {
+        // 1) Load the currently saved para.py from the server
+        const getResp = await fetch('/get_para_content');
+        const getData = await getResp.json();
+        if (!getData.success) throw new Error(getData.error || 'Failed to load para content');
+
+        // 2) Set the editor content without triggering a form->para write
+        isUpdatingFromPara = true;
+        const editor = document.getElementById('paraEditor');
+        if (editor) editor.value = getData.content;
+
+        // 3) Ask backend to parse it (without altering the file) by reusing save endpoint
+        const parseResp = await fetch('/save_para_content', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: getData.content })
+        });
+        const parseData = await parseResp.json();
+        if (parseData.success && parseData.params) {
+            updateFormFromPara(parseData.params);
+        }
+        toggleSimulationForms();
+    } catch (e) {
+        console.error('Init sync error:', e);
+    } finally {
+        isUpdatingFromPara = false;
+    }
+}
+
+// Optimized event listeners for better performance
+document.addEventListener('DOMContentLoaded', function() {
+    // Use event delegation for better performance
+    const configForm = document.getElementById('configForm');
+    if (configForm) {
+        // Single event listener using event delegation
+        configForm.addEventListener('change', function(e) {
+            if (e.target.matches('input, select, textarea')) {
+                updateParaFromForm();
+            }
+        });
+        
+        configForm.addEventListener('input', function(e) {
+            if (e.target.matches('input[type="text"], input[type="number"], textarea')) {
+                // Debounce input events for better performance
+                clearTimeout(window.inputTimeout);
+                window.inputTimeout = setTimeout(() => {
+                    updateParaFromForm();
+                }, 300);
+            }
+        });
+    }
+    
+    // Add event listener for para.py editor
+    const editor = document.getElementById('paraEditor');
+    editor.addEventListener('input', () => { savingFromForm = false; autoSavePara(); });
+    // Initial height sync
+    syncEditorHeight();
+
+    // Initialize section visibility and enablement
+    toggleSimulationForms();
+    goToStep(1);
+    syncEditorHeight();
+
+    // Initial sync from para to form (prevents refresh from reverting to hardcoded defaults)
+    initSyncFromPara();
+
+    // On submit: force-save para.py, then submit form
+    const form = document.getElementById('configForm');
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            try {
+                e.preventDefault();
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = true;
+                const ok = await saveParaNow();
+                // proceed regardless; at worst, we tried to save
+                form.submit();
+            } catch (_) {
+                form.submit();
+            }
+        });
+    }
+    // Sync on window resize
+    window.addEventListener('resize', syncEditorHeight);
+});
+</script>
+{% endblock %}

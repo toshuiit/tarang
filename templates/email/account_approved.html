@@ -1,0 +1,19 @@
+{% extends "email/base.html" %}
+
+{% block content %}
+  <h2>Your Account Has Been Approved</h2>
+  
+  <p>Hello {{ user.username }},</p>
+  
+  <p>We're pleased to inform you that your account has been approved by the administrator. You can now log in to {{ config['APP_NAME'] }} using your credentials.</p>
+  
+  <p style="text-align: center; margin: 30px 0;">
+    <a href="{{ login_url }}" style="display: inline-block; padding: 12px 24px; background-color: #28a745; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
+      Log In to Your Account
+    </a>
+  </p>
+  
+  <p>If you have any questions or need assistance, please don't hesitate to contact our support team at <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
+  
+  <p>Best regards,<br>The {{ config['APP_NAME'] }} Team</p>
+{% endblock %}

@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block title %}Set Up Two-Factor Authentication{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i> Set Up Two-Factor Authentication
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle me-2"></i>What is Two-Factor Authentication?</h5>
+                        <p class="mb-0">
+                            Two-factor authentication (2FA) adds an extra layer of security to your account. 
+                            In addition to your password, you'll need to enter a code from your 
+                            authenticator app to log in.
+                        </p>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h5>Step 1: Install an Authenticator App</h5>
+                            <p>Download one of these apps on your phone:</p>
+                            <div class="d-grid gap-2">
+                                <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" 
+                                   target="_blank" 
+                                   class="btn btn-outline-dark">
+                                    <i class="fab fa-google-play me-2"></i> Google Authenticator
+                                </a>
+                                <a href="https://apps.apple.com/us/app/microsoft-authenticator/id983156458" 
+                                   target="_blank" 
+                                   class="btn btn-outline-dark">
+                                    <i class="fab fa-apple me-2"></i> Microsoft Authenticator
+                                </a>
+                                <a href="https://authy.com/" 
+                                   target="_blank" 
+                                   class="btn btn-outline-dark">
+                                    <i class="fas fa-mobile-alt me-2"></i> Authy
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>Step 2: Scan the QR Code</h5>
+                            <p>Open your authenticator app and scan this QR code:</p>
+                            <div class="text-center mb-3">
+                                <img src="{{ qr_code_url }}" 
+                                     alt="MFA QR Code" 
+                                     class="img-thumbnail"
+                                     style="max-width: 200px;">
+                            </div>
+                            <p class="small text-muted text-center">
+                                Or enter this code manually: 
+                                <code class="d-block mt-1">{{ secret_key }}</code>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-8 mx-auto">
+                            <h5>Step 3: Verify the Code</h5>
+                            <p>Enter the 6-digit code from your authenticator app to complete setup.</p>
+                            
+                            <form method="POST" action="{{ url_for('auth.setup_mfa') }}" class="needs-validation" novalidate>
+                                {{ form.hidden_tag() }}
+                                
+                                <div class="mb-3">
+                                    <label for="otp" class="form-label">Verification Code</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-mobile-alt"></i>
+                                        </span>
+                                        {{ form.otp(
+                                            class="form-control form-control-lg" + (" is-invalid" if form.otp.errors else ""),
+                                            placeholder="6-digit code",
+                                            inputmode="numeric",
+                                            pattern="\d{6}",
+                                            maxlength="6",
+                                            autofocus,
+                                            autocomplete="one-time-code"
+                                        ) }}
+                                    </div>
+                                    {% if form.otp.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.otp.errors[0] }}
+                                        </div>
+                                    {% else %}
+                                        <div class="form-text">
+                                            Enter the 6-digit code from your authenticator app
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="d-grid gap-2 mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-check-circle me-2"></i> Verify and Enable
+                                    </button>
+                                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-2"></i> Cancel
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-light text-center py-3">
+                    <p class="mb-0 small text-muted">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Two-factor authentication is recommended for all users
+                    </p>
+                </div>
+            </div>
+            
+            <div class="card shadow mt-4">
+                <div class="card-body">
+                    <h5><i class="fas fa-question-circle me-2"></i>Need Help?</h5>
+                    <p>If you're having trouble setting up two-factor authentication, please:</p>
+                    <ul>
+                        <li>Make sure your device's time is set to update automatically</li>
+                        <li>Try scanning the QR code again or enter the code manually</li>
+                        <li>Contact support if you continue to have issues</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Auto-advance OTP input fields
+const otpInput = document.getElementById('otp');
+if (otpInput) {
+    otpInput.addEventListener('input', function(e) {
+        // Remove any non-digit characters
+        this.value = this.value.replace(/\D/g, '');
+        
+        // Limit to 6 digits
+        if (this.value.length > 6) {
+            this.value = this.value.slice(0, 6);
+        }
+    });
+    
+    // Auto-submit when 6 digits are entered
+    otpInput.addEventListener('keyup', function(e) {
+        if (this.value.length === 6) {
+            this.form.submit();
+        }
+    });
+}
+
+// Enable form validation
+(function () {
+    'use strict'
+    
+    // Fetch all forms we want to apply custom Bootstrap validation styles to
+    var forms = document.querySelectorAll('.needs-validation')
+    
+    // Loop over them and prevent submission
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                
+                form.classList.add('was-validated')
+            }, false)
+        })
+})();
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+/* Custom styles for the MFA setup page */
+.card {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+}
+
+/* QR code styling */
+.img-thumbnail {
+    padding: 0.5rem;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Form control styling */
+.form-control-lg {
+    padding: 0.75rem 1rem;
+    font-size: 1.1rem;
+}
+
+/* Alert styling */
+.alert {
+    border: none;
+    border-left: 4px solid #0d6efd;
+    border-radius: 0.375rem;
+}
+
+.alert-info {
+    background-color: #f0f7ff;
+    color: #0a58ca;
+}
+</style>
+{% endblock %}

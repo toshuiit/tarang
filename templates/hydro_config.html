@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Hydro Configuration - Tarang{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-water"></i> Hydrodynamics Configuration</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <!-- First row: nu, Alt Dissipation, Forcing Enabled -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="nu" class="form-label">nu:</label>
+                                <input type="number" class="form-control" id="nu" name="nu" value="0.01" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Alt Dissipation:</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="alt_dissipation" name="alt_dissipation" value="1">
+                                    <label class="form-check-label" for="alt_dissipation">
+                                        Enable Alternative Dissipation
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Forcing Enabled:</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="forcing_enabled" name="forcing_enabled" value="1">
+                                    <label class="form-check-label" for="forcing_enabled">
+                                        Enable Forcing
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Second row: nu hypo, nu hypo power, nu hyper, nu hyper power -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="nu_hypo" class="form-label">nu hypo:</label>
+                                <input type="number" class="form-control" id="nu_hypo" name="nu_hypo" value="8.1" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="nu_hypo_power" class="form-label">nu hypo power:</label>
+                                <input type="number" class="form-control" id="nu_hypo_power" name="nu_hypo_power" value="-2" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="nu_hyper" class="form-label">nu hyper:</label>
+                                <input type="number" class="form-control" id="nu_hyper" name="nu_hyper" value="0" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="nu_hyper_power" class="form-label">nu hyper power:</label>
+                                <input type="number" class="form-control" id="nu_hyper_power" name="nu_hyper_power" value="25" step="any" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Third row: Forcing Range, Injection rate -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="forcing_range" class="form-label">Forcing Range:</label>
+                                <input type="text" class="form-control" id="forcing_range" name="forcing_range" value="[4, 5]" required>
+                                <div class="form-text">Enter as array format, e.g., [4, 5]</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="injection_rate" class="form-label">Injection rate:</label>
+                                <input type="number" class="form-control" id="injection_rate" name="injection_rate" value="0.05" step="any" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation buttons -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('run_config') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Back
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-arrow-right"></i> Next
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

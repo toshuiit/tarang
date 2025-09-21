@@ -1,0 +1,16 @@
+{% extends "email/base.html" %}
+
+{% block content %}
+  <h2>Account Pending Approval</h2>
+  <p>Hello {{ user.username }},</p>
+  
+  <p>Thank you for registering with {{ config['APP_NAME'] }}. Your account is currently pending approval by an administrator.</p>
+  
+  <p>We will review your registration and notify you once your account has been activated. This process typically takes 1-2 business days.</p>
+  
+  <p>If you have any questions, please don't hesitate to contact our support team at <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
+  
+  <p>Thank you for your patience.</p>
+  
+  <p>Best regards,<br>The {{ config['APP_NAME'] }} Team</p>
+{% endblock %}

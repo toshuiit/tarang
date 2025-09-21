@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Final Configuration - Tarang{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-clock"></i> Time and Output Configuration</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <!-- First row: Initial time, Final time, dt, Time Scheme, FIXED Dt, Courant no -->
+                    <div class="row mb-4">
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="initial_time" class="form-label">Initial time:</label>
+                                <input type="number" class="form-control" id="initial_time" name="initial_time" value="0" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="final_time" class="form-label">Final time:</label>
+                                <input type="number" class="form-control" id="final_time" name="final_time" value="0.01" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="dt" class="form-label">dt:</label>
+                                <input type="number" class="form-control" id="dt" name="dt" value="0.001" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="time_scheme" class="form-label">Time Scheme:</label>
+                                <select class="form-select" id="time_scheme" name="time_scheme" required>
+                                    <option value="EULER" selected>EULER</option>
+                                    <option value="RK2">RK2</option>
+                                    <option value="RK4">RK4</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label class="form-label">FIXED Dt:</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="fixed_dt" name="fixed_dt" value="1" checked>
+                                    <label class="form-check-label" for="fixed_dt">
+                                        Fixed
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="courant_no" class="form-label">Courant no:</label>
+                                <input type="number" class="form-control" id="courant_no" name="courant_no" value="0.5" step="any" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modes save -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="modes_save" class="form-label">Modes save:</label>
+                                <input type="text" class="form-control" id="modes_save" name="modes_save" value="(1,0,0),(0,0,1)" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Second row: field save start, field save interval, Energy print start, Energy print interval -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="field_save_start" class="form-label">field save start:</label>
+                                <input type="number" class="form-control" id="field_save_start" name="field_save_start" value="0" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="field_save_interval" class="form-label">field save interval:</label>
+                                <input type="number" class="form-control" id="field_save_interval" name="field_save_interval" value="500" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="energy_print_start" class="form-label">Energy print start:</label>
+                                <input type="number" class="form-control" id="energy_print_start" name="energy_print_start" value="0" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="energy_print_interval" class="form-label">Energy print interval:</label>
+                                <input type="number" class="form-control" id="energy_print_interval" name="energy_print_interval" value="1" step="any" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Third row: Ektk save start, Ektk save interval, Modes save start, Modes save interval -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="ektk_save_start" class="form-label">Ektk save start:</label>
+                                <input type="number" class="form-control" id="ektk_save_start" name="ektk_save_start" value="0" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="ektk_save_interval" class="form-label">Ektk save interval:</label>
+                                <input type="number" class="form-control" id="ektk_save_interval" name="ektk_save_interval" value="100" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="modes_save_start" class="form-label">Modes save start:</label>
+                                <input type="number" class="form-control" id="modes_save_start" name="modes_save_start" value="0" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="modes_save_interval" class="form-label">Modes save interval:</label>
+                                <input type="number" class="form-control" id="modes_save_interval" name="modes_save_interval" value="200" step="any" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Run button (centered) -->
+                    <div class="row mb-4">
+                        <div class="col-12 text-center">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-play"></i> Run
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Back button -->
+                    <div class="row">
+                        <div class="col-12">
+                            <a href="javascript:history.back()" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

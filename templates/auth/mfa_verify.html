@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Your Identity{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i> Two-Factor Authentication
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i class="fas fa-mobile-alt fa-4x text-primary"></i>
+                        </div>
+                        <h5>Enter Authentication Code</h5>
+                        <p class="text-muted">
+                            Open your authenticator app and enter the 6-digit code
+                        </p>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('auth.verify_2fa') }}">
+                        {{ form.hidden_tag() }}
+                        <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+                        
+                        <div class="mb-4">
+                            <div class="form-group">
+                                <div class="d-flex justify-content-center">
+                                    <div style="max-width: 250px;">
+                                        {{ form.otp.label(class="form-label") }}
+                                        <div class="input-group input-group-lg">
+                                            {{ form.otp(class="form-control form-control-lg text-center", 
+                                                     placeholder="123456",
+                                                     autofocus=true,
+                                                     inputmode="numeric",
+                                                     pattern="\d{6}",
+                                                     maxlength="6") }}
+                                            <button class="btn btn-primary" type="submit">
+                                                <i class="fas fa-arrow-right"></i>
+                                            </button>
+                                        </div>
+                                        {% if form.otp.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ form.otp.errors[0] }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mb-3">
+                            <a href="{{ url_for('auth.login') }}" class="text-muted small">
+                                <i class="fas fa-arrow-left me-1"></i> Back to Login
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="text-center">
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#recoveryModal" class="text-muted small">
+                            <i class="fas fa-key me-1"></i> Can't access your authenticator app?
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recovery Code Modal -->
+<div class="modal fade" id="recoveryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Use Recovery Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('auth.verify_2fa_recovery') }}">
+                <div class="modal-body">
+                    <p>Enter one of your recovery codes to sign in.</p>
+                    <div class="mb-3">
+                        <label for="recoveryCode" class="form-label">Recovery Code</label>
+                        <input type="text" class="form-control" id="recoveryCode" name="recovery_code" required>
+                        <div class="form-text">Each code can only be used once.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Verify Recovery Code</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Auto-submit when 6 digits are entered
+document.addEventListener('DOMContentLoaded', function() {
+    const otpInput = document.getElementById('{{ form.otp.id }}');
+    
+    if (otpInput) {
+        otpInput.addEventListener('input', function(e) {
+            // Remove non-numeric characters
+            this.value = this.value.replace(/[^0-9]/g, '');
+            
+            // Auto-submit when 6 digits are entered
+            if (this.value.length === 6) {
+                this.form.submit();
+            }
+        });
+        
+        // Focus the input field
+        otpInput.focus();
+    }
+});
+</script>
+{% endblock %}

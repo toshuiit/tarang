@@ -1,0 +1,210 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">User Management</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-user-plus"></i> Add New User
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-8">
+                <form class="row g-2" method="get">
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <input type="text" class="form-control form-control-sm" name="q" placeholder="Search users..." value="{{ request.args.get('q', '') }}">
+                            <button class="btn btn-sm btn-outline-secondary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <select class="form-select form-select-sm" name="status" onchange="this.form.submit()">
+                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Users ({{ users.total }})</option>
+                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending Approval ({{ pending_count }})</option>
+                            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active ({{ active_count }})</option>
+                            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive ({{ inactive_count }})</option>
+                            <option value="admin" {% if status_filter == 'admin' %}selected{% endif %}>Admins</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th>Last Login</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users.items %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-2">
+                                <div class="avatar-sm rounded-circle bg-light text-center">
+                                    <i class="fas fa-user fa-lg text-secondary mt-2"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="text-decoration-none">
+                                    {{ user.username }}
+                                </a>
+                                {% if user == current_user %}
+                                <span class="badge bg-primary ms-1">You</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% if user.account_status == 'pending_approval' %}
+                            <span class="badge bg-warning">Pending Approval</span>
+                        {% elif user.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                        {% endif %}
+                        
+                        {% if user.email_verified %}
+                            <span class="badge bg-info text-dark">Verified</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Unverified</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.is_admin %}
+                        <span class="badge bg-primary">Admin</span>
+                        {% else %}
+                        <span class="badge bg-secondary">User</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        {% if user.last_login %}
+                        {{ user.last_login.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                        Never
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            {% if user.account_status == 'pending_approval' and user != current_user %}
+                            <form action="{{ url_for('admin.approve_user', user_id=user.id) }}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-success btn-sm" title="Approve User">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn btn-outline-primary" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            
+                            {% if user != current_user %}
+                            <form action="{{ url_for('admin.toggle_user_active', user_id=user.id) }}" method="post" class="d-inline">
+                                <button type="submit" class="btn {{ 'btn-outline-warning' if user.is_active else 'btn-outline-success' }}" 
+                                        title="{{ 'Deactivate' if user.is_active else 'Activate' }}">
+                                    <i class="fas {{ 'fa-user-times' if user.is_active else 'fa-user-check' }}"></i>
+                                </button>
+                            </form>
+                            
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id }}" title="Delete User">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Remove Admin" onclick="return confirm('Remove admin privileges from this user?')">
+                                    <i class="fas fa-user-shield"></i>
+                                </button>
+                                {% else %}
+                                <button type="submit" class="btn btn-sm btn-outline-primary" title="Make Admin" onclick="return confirm('Grant admin privileges to this user?')">
+                                    <i class="fas fa-user-shield"></i>
+                                </button>
+                                {% endif %}
+                            </form>
+                            <form method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this user? This action cannot be undone.');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center py-4">
+                        <div class="text-muted">No users found</div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if users.pages > 1 %}
+    <div class="card-footer">
+        <nav aria-label="Users pagination">
+            <ul class="pagination justify-content-center mb-0">
+                {% if users.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.user_list', page=users.prev_num, q=request.args.get('q', ''), filter=request.args.get('filter', '')) }}">Previous</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+                {% endif %}
+                
+                {% for page_num in users.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        {% if users.page == page_num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin.user_list', page=page_num, q=request.args.get('q', ''), filter=request.args.get('filter', '')) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if users.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.user_list', page=users.next_num, q=request.args.get('q', ''), filter=request.args.get('filter', '')) }}">Next</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

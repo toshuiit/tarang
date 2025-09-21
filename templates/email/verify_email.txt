@@ -1,0 +1,12 @@
+Welcome to Tarang!
+
+Hello {{ user.username }},
+
+Thank you for registering with Tarang. To complete your registration, please verify your email address by clicking the following link:
+
+{{ verify_url }}
+
+If you did not create an account with Tarang, you can safely ignore this email.
+
+Best regards,
+The Tarang Team

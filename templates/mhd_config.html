@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}MHD Configuration - Tarang{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-magnet"></i> Magnetohydrodynamics Configuration</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <!-- First row: nu, eta, Enable Forcing -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="nu" class="form-label">nu:</label>
+                                <input type="number" class="form-control" id="nu" name="nu" value="0.02" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="eta" class="form-label">eta:</label>
+                                <input type="number" class="form-control" id="eta" name="eta" value="0.02" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Enable Forcing:</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enable_forcing" name="enable_forcing" value="1">
+                                    <label class="form-check-label" for="enable_forcing">
+                                        Enable Forcing
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Second row: nu hypo, nu hypo power, nu hyper, nu hyper power -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="nu_hypo" class="form-label">nu hypo:</label>
+                                <input type="number" class="form-control" id="nu_hypo" name="nu_hypo" value="0.1" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="nu_hypo_power" class="form-label">nu hypo power:</label>
+                                <input type="number" class="form-control" id="nu_hypo_power" name="nu_hypo_power" value="-2" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="nu_hyper" class="form-label">nu hyper:</label>
+                                <input type="number" class="form-control" id="nu_hyper" name="nu_hyper" value="0" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="nu_hyper_power" class="form-label">nu hyper power:</label>
+                                <input type="number" class="form-control" id="nu_hyper_power" name="nu_hyper_power" value="25" step="any" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Third row: eta hypo, eta hypo power, eta hyper, eta hyper power -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="eta_hypo" class="form-label">eta hypo:</label>
+                                <input type="number" class="form-control" id="eta_hypo" name="eta_hypo" value="0.1" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="eta_hypo_power" class="form-label">eta hypo power:</label>
+                                <input type="number" class="form-control" id="eta_hypo_power" name="eta_hypo_power" value="-2" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="eta_hyper" class="form-label">eta hyper:</label>
+                                <input type="number" class="form-control" id="eta_hyper" name="eta_hyper" value="0" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="eta_hyper_power" class="form-label">eta hyper power:</label>
+                                <input type="number" class="form-control" id="eta_hyper_power" name="eta_hyper_power" value="-25" step="any" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fourth row: Forcing Range, Injection eplus, Injection eminus, Injection er -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="forcing_range" class="form-label">Forcing Range:</label>
+                                <input type="text" class="form-control" id="forcing_range" name="forcing_range" value="[4, 5]" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="injection_eplus" class="form-label">Injection eplus:</label>
+                                <input type="number" class="form-control" id="injection_eplus" name="injection_eplus" value="0.0" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="injection_eminus" class="form-label">Injection eminus:</label>
+                                <input type="number" class="form-control" id="injection_eminus" name="injection_eminus" value="0.0" step="any" required>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="injection_er" class="form-label">Injection er:</label>
+                                <input type="number" class="form-control" id="injection_er" name="injection_er" value="0.0" step="any" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation buttons -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('run_config') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Back
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-arrow-right"></i> Next
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

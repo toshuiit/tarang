@@ -1,0 +1,26 @@
+# AWS Integration Dependencies for Tarang Simulation Platform
+
+# Core AWS SDK
+boto3==1.34.0
+botocore==1.34.0
+
+# Kubernetes Python Client for EKS
+kubernetes==28.1.0
+
+# Additional utilities
+python-dateutil==2.8.2
+urllib3==1.26.18
+
+# For async operations (optional)
+aioboto3==12.0.0
+aiofiles==23.2.0
+
+# For job queue management
+celery==5.3.4
+redis==5.0.1
+
+# For monitoring and metrics
+prometheus-client==0.19.0
+
+# For configuration management
+python-decouple==3.8

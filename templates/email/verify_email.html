@@ -1,0 +1,20 @@
+{% extends "email/base.html" %}
+
+{% block title %}Verify Your Email Address{% endblock %}
+
+{% block content %}
+    <h2>Welcome to Tarang!</h2>
+    <p>Hello {{ user.username }},</p>
+    <p>Thank you for registering with Tarang. To complete your registration, please verify your email address by clicking the button below:</p>
+    
+    <div style="text-align: center; margin: 25px 0;">
+        <a href="{{ verify_url }}" class="button" style="color: #ffffff;">Verify Email Address</a>
+    </div>
+    
+    <p>Or copy and paste this link into your browser:</p>
+    <p><a href="{{ verify_url }}" style="word-break: break-all;">{{ verify_url }}</a></p>
+    
+    <p>If you did not create an account with Tarang, you can safely ignore this email.</p>
+    
+    <p>Best regards,<br>The Tarang Team</p>
+{% endblock %}

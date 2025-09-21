@@ -1,0 +1,12 @@
+Hello {{ user.first_name }},
+
+Thank you for registering with {{ config['APP_NAME'] }}. Your account is currently pending approval by an administrator.
+
+We will review your registration and notify you once your account has been activated. This process typically takes 1-2 business days.
+
+If you have any questions, please contact our support team at {{ support_email }}.
+
+Thank you for your patience.
+
+Best regards,
+The {{ config['APP_NAME'] }} Team

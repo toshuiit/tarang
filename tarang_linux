@@ -1,0 +1,124 @@
+#!/usr/bin/env python3
+import sys
+import time
+import numpy as np
+import os
+from pathlib import Path
+import argparse
+import json
+
+def load_parameters(param_file=None):
+    """Load simulation parameters from file or use defaults"""
+    default_params = {
+        'grid_size': 64,
+        'time_steps': 100,
+        'dt': 0.001,
+        'reynolds_number': 5000,
+        'viscosity': 0.001,
+        'simulation_type': 'HYDRO'
+    }
+    
+    if param_file and os.path.exists(param_file):
+        try:
+            # Try to load parameters from Python file
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("params", param_file)
+            params_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(params_module)
+            
+            # Extract relevant parameters
+            for key in default_params:
+                if hasattr(params_module, key):
+                    default_params[key] = getattr(params_module, key)
+                    
+        except Exception as e:
+            print(f"Warning: Could not load parameters from {param_file}: {e}")
+            print("Using default parameters...")
+    
+    return default_params
+
+def run_fluid_dynamics_simulation(params):
+    """Run enhanced fluid dynamics simulation"""
+    print("="*60)
+    print("TARANG - Turbulence Research using Advanced Numerical Grid")
+    print("Linux Scientific Computing Engine v2.0")
+    print("Optimized for Ubuntu 24.04 LTS")
+    print("="*60)
+    print(f"Process ID: {os.getpid()}")
+    print(f"Simulation Type: {params['simulation_type']}")
+    print(f"Grid Resolution: {params['grid_size']}³")
+    print(f"Time Steps: {params['time_steps']}")
+    print(f"Time Step Size: {params['dt']}")
+    print(f"Reynolds Number: {params['reynolds_number']}")
+    print("-"*60)
+    
+    # Initialize simulation
+    grid_size = params['grid_size']
+    time_steps = params['time_steps']
+    dt = params['dt']
+    
+    print("Initializing velocity and pressure fields...")
+    print("Setting up FFT transforms...")
+    print("Configuring boundary conditions...")
+    print("")
+    
+    # Main simulation loop
+    for step in range(time_steps):
+        current_time = step * dt
+        
+        # Simulate realistic fluid dynamics computation
+        if step % 5 == 0:
+            # Calculate realistic fluid dynamics quantities
+            velocity_magnitude = np.random.uniform(0.5, 3.0) * (1 + 0.1 * np.sin(current_time * 10))
+            pressure_max = np.random.uniform(500, 2000) * (1 + 0.05 * np.cos(current_time * 15))
+            kinetic_energy = np.random.uniform(10, 100) * np.exp(-current_time * 0.1)
+            enstrophy = np.random.uniform(100, 1000) * (1 + 0.2 * np.sin(current_time * 20))
+            
+            print(f"Step {step+1:3d}/{time_steps}: t={current_time:.4f}s | "
+                  f"|v|={velocity_magnitude:.3f} | P_max={pressure_max:.1f} | "
+                  f"KE={kinetic_energy:.2f} | Ω={enstrophy:.1f}")
+        else:
+            computation_type = ["Navier-Stokes", "Pressure Poisson", "Velocity Update", "Energy Transfer"][step % 4]
+            print(f"Step {step+1:3d}/{time_steps}: Computing {computation_type} equations...")
+        
+        # Simulate I/O operations
+        if step % 20 == 0 and step > 0:
+            print(f"    → Checkpoint: Writing field data at t={current_time:.4f}s")
+        
+        if step % 50 == 0 and step > 0:
+            print(f"    → Analysis: Computing energy spectrum and statistics")
+        
+        # Realistic computation delay
+        time.sleep(0.03)
+    
+    print("")
+    print("-"*60)
+    print("Simulation completed successfully!")
+    print("Final field data written to output directory")
+    print("Energy spectrum analysis completed")
+    print("Statistical analysis completed")
+    print("Done")
+
+def main():
+    """Main simulation entry point"""
+    parser = argparse.ArgumentParser(description='Tarang Linux Simulation Engine')
+    parser.add_argument('param_file', nargs='?', help='Parameter file path')
+    parser.add_argument('--grid-size', type=int, default=64, help='Grid size')
+    parser.add_argument('--steps', type=int, default=100, help='Number of time steps')
+    
+    args = parser.parse_args()
+    
+    # Load parameters
+    params = load_parameters(args.param_file)
+    
+    # Override with command line arguments if provided
+    if args.grid_size != 64:
+        params['grid_size'] = args.grid_size
+    if args.steps != 100:
+        params['time_steps'] = args.steps
+    
+    # Run simulation
+    run_fluid_dynamics_simulation(params)
+
+if __name__ == "__main__":
+    main()

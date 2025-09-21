@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Tarang{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center min-vh-100">
+    <div class="col-md-8 col-lg-6 col-xl-5">
+        <!-- Signup Card -->
+        <div class="card">
+            <!-- Header -->
+            <div class="card-header text-center border-0 pb-0">
+                <div class="mb-3">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-20 p-3 mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-user-plus fa-2x text-success"></i>
+                    </div>
+                </div>
+                <h4 class="mb-1">
+                    <i class="fas fa-user-plus me-2"></i>Create Account
+                </h4>
+                <p class="text-muted mb-0">
+                    <small>Join the Tarang scientific computing platform</small>
+                </p>
+            </div>
+            
+            <!-- Registration Form -->
+            <div class="card-body pt-3">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Client-side Error Messages -->
+                <div class="alert alert-danger d-none" id="clientErrorAlert" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <div id="clientErrorMessage"></div>
+                </div>
+                
+                <form method="POST" id="signupForm">
+                    <!-- Username Field -->
+                    <div class="mb-4">
+                        <label for="username" class="form-label">
+                            <i class="fas fa-user me-2"></i>Username
+                        </label>
+                        <div class="position-relative">
+                            <input type="text" class="form-control form-control-enhanced ps-5" id="username" name="username" 
+                                   required>
+                            <i class="fas fa-user position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        </div>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>Your unique username for the platform
+                        </small>
+                    </div>
+                    
+                    <!-- Email Field -->
+                    <div class="mb-4">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope me-2"></i>Email Address
+                        </label>
+                        <div class="position-relative">
+                            <input type="email" class="form-control form-control-enhanced ps-5" id="email" name="email" 
+                                   required>
+                            <i class="fas fa-envelope position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        </div>
+                        <small class="text-muted">
+                            <i class="fas fa-shield-alt me-1"></i>We'll use this for account verification
+                        </small>
+                    </div>
+                    
+                    <!-- Password Field -->
+                    <div class="mb-4">
+                        <label for="password" class="form-label">
+                            <i class="fas fa-lock me-2"></i>Password
+                        </label>
+                        <div class="position-relative">
+                            <input type="password" class="form-control form-control-enhanced ps-5" id="password" name="password" 
+                                   required>
+                            <i class="fas fa-lock position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                            <button type="button" class="btn btn-link position-absolute top-50 end-0 translate-middle-y me-2 p-0" 
+                                    onclick="togglePassword('password', 'toggleIcon1')" id="toggleBtn1">
+                                <i class="fas fa-eye text-muted" id="toggleIcon1"></i>
+                            </button>
+                        </div>
+                        <!-- Password Strength Indicator -->
+                        <div class="mt-2">
+                            <div class="progress" style="height: 4px;">
+                                <div class="progress-bar" id="passwordStrength" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted" id="strengthText"></small>
+                        </div>
+                        <!-- Password Requirements Checklist -->
+                        <div class="mt-2" id="passwordRequirements" style="display: none;">
+                            <small class="text-muted d-block mb-1">Password must contain:</small>
+                            <div class="row g-1">
+                                <div class="col-6">
+                                    <small class="text-muted" id="req-length">
+                                        <i class="fas fa-times text-danger me-1"></i>9+ characters
+                                    </small>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted" id="req-uppercase">
+                                        <i class="fas fa-times text-danger me-1"></i>Uppercase letter
+                                    </small>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted" id="req-number">
+                                        <i class="fas fa-times text-danger me-1"></i>Number
+                                    </small>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted" id="req-special">
+                                        <i class="fas fa-times text-danger me-1"></i>Special character
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Confirm Password Field -->
+                    <div class="mb-4">
+                        <label for="confirm_password" class="form-label">
+                            <i class="fas fa-check-double me-2"></i>Confirm Password
+                        </label>
+                        <div class="position-relative">
+                            <input type="password" class="form-control form-control-enhanced ps-5" id="confirm_password" name="confirm_password" 
+                                   required>
+                            <i class="fas fa-lock position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                            <button type="button" class="btn btn-link position-absolute top-50 end-0 translate-middle-y me-2 p-0" 
+                                    onclick="togglePassword('confirm_password', 'toggleIcon2')" id="toggleBtn2">
+                                <i class="fas fa-eye text-muted" id="toggleIcon2"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted" id="passwordMatch"></small>
+                    </div>
+                    
+                    <!-- Terms Agreement -->
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="agreeTerms" name="agree_terms" required>
+                            <label class="form-check-label" for="agreeTerms">
+                                <i class="fas fa-handshake me-1"></i>I agree to the 
+                                <a href="#" class="text-primary">Terms of Service</a> and 
+                                <a href="#" class="text-primary">Privacy Policy</a>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Registration Button -->
+                    <div class="d-grid mb-4">
+                        <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
+                            <i class="fas fa-rocket me-2"></i>
+                            <span>Create Account</span>
+                            <div class="loading-spinner ms-2 d-none" id="signupSpinner"></div>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Divider -->
+                <div class="text-center mb-4">
+                    <div class="position-relative">
+                        <hr class="my-4">
+                        <span class="position-absolute top-50 start-50 translate-middle bg-dark px-3 text-muted">
+                            <small>Already Connected?</small>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Login Link -->
+                <div class="text-center">
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-sign-in-alt me-2"></i>Sign In to Existing Account
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+        
+        <!-- Security Notice -->
+        <div class="text-center mt-4">
+            <small class="text-muted">
+                <i class="fas fa-lock me-1"></i>
+                Your data is protected by advanced encryption and secure distributed systems
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Scripts for Signup Page -->
+<script>
+    // Client-side error display functions
+    function showClientError(errors) {
+        const errorAlert = document.getElementById('clientErrorAlert');
+        const errorMessage = document.getElementById('clientErrorMessage');
+        
+        let errorHtml = '<strong>Please fix the following errors:</strong><ul class="mb-0 mt-2">';
+        errors.forEach(error => {
+            errorHtml += `<li>${error}</li>`;
+        });
+        errorHtml += '</ul>';
+        
+        errorMessage.innerHTML = errorHtml;
+        errorAlert.classList.remove('d-none');
+        
+        // Scroll to error
+        errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+            hideClientError();
+        }, 10000);
+    }
+    
+    function hideClientError() {
+        const errorAlert = document.getElementById('clientErrorAlert');
+        errorAlert.classList.add('d-none');
+    }
+    
+    // Password visibility toggle
+    function togglePassword(fieldId, iconId) {
+        const passwordField = document.getElementById(fieldId);
+        const toggleIcon = document.getElementById(iconId);
+        
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            toggleIcon.className = 'fas fa-eye-slash text-muted';
+        } else {
+            passwordField.type = 'password';
+            toggleIcon.className = 'fas fa-eye text-muted';
+        }
+    }
+    
+    // Password strength checker with enhanced policy
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        let feedback = [];
+        
+        // Must be more than 8 characters (at least 9)
+        if (password.length >= 9) strength += 20;
+        else feedback.push('9+ characters');
+        
+        // Must contain lowercase
+        if (/[a-z]/.test(password)) strength += 20;
+        else feedback.push('lowercase letter');
+        
+        // Must contain uppercase
+        if (/[A-Z]/.test(password)) strength += 20;
+        else feedback.push('uppercase letter');
+        
+        // Must contain number
+        if (/[0-9]/.test(password)) strength += 20;
+        else feedback.push('number');
+        
+        // Must contain special character
+        if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(password)) strength += 20;
+        else feedback.push('special character (!@#$%^&*...)');
+        
+        return { strength, feedback };
+    }
+    
+    // Password policy validation
+    function validatePasswordPolicy(password) {
+        const requirements = {
+            length: password.length >= 9,
+            uppercase: /[A-Z]/.test(password),
+            lowercase: /[a-z]/.test(password),
+            number: /[0-9]/.test(password),
+            special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(password)
+        };
+        
+        const isValid = Object.values(requirements).every(req => req);
+        return { isValid, requirements };
+    }
+    
+    // Password strength indicator with requirements checklist
+    document.getElementById('password').addEventListener('input', function() {
+        const password = this.value;
+        const { strength, feedback } = checkPasswordStrength(password);
+        const { isValid, requirements } = validatePasswordPolicy(password);
+        const progressBar = document.getElementById('passwordStrength');
+        const strengthText = document.getElementById('strengthText');
+        const requirementsDiv = document.getElementById('passwordRequirements');
+        
+        // Show requirements checklist when user starts typing
+        if (password.length > 0) {
+            requirementsDiv.style.display = 'block';
+        } else {
+            requirementsDiv.style.display = 'none';
+        }
+        
+        // Update requirements checklist
+        updateRequirementStatus('req-length', requirements.length);
+        updateRequirementStatus('req-uppercase', requirements.uppercase);
+        updateRequirementStatus('req-number', requirements.number);
+        updateRequirementStatus('req-special', requirements.special);
+        
+        // Update progress bar
+        progressBar.style.width = strength + '%';
+        
+        if (strength < 40) {
+            progressBar.className = 'progress-bar bg-danger';
+            strengthText.textContent = 'Password strength: Weak';
+        } else if (strength < 80) {
+            progressBar.className = 'progress-bar bg-warning';
+            strengthText.textContent = 'Password strength: Moderate';
+        } else if (strength < 100) {
+            progressBar.className = 'progress-bar bg-info';
+            strengthText.textContent = 'Password strength: Strong';
+        } else {
+            progressBar.className = 'progress-bar bg-success';
+            strengthText.textContent = 'Password strength: Excellent';
+        }
+    });
+    
+    // Helper function to update requirement status
+    function updateRequirementStatus(elementId, isMet) {
+        const element = document.getElementById(elementId);
+        const icon = element.querySelector('i');
+        
+        if (isMet) {
+            icon.className = 'fas fa-check text-success me-1';
+            element.classList.remove('text-muted');
+            element.classList.add('text-success');
+        } else {
+            icon.className = 'fas fa-times text-danger me-1';
+            element.classList.remove('text-success');
+            element.classList.add('text-muted');
+        }
+    }
+    
+    // Password match checker
+    document.getElementById('confirm_password').addEventListener('input', function() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = this.value;
+        const matchText = document.getElementById('passwordMatch');
+        
+        if (confirmPassword === '') {
+            matchText.textContent = '';
+        } else if (password === confirmPassword) {
+            matchText.innerHTML = '<i class="fas fa-check text-success me-1"></i>Passwords match';
+            matchText.className = 'text-success';
+        } else {
+            matchText.innerHTML = '<i class="fas fa-times text-danger me-1"></i>Passwords do not match';
+            matchText.className = 'text-danger';
+        }
+    });
+    
+    // Wait for DOM to be fully loaded before adding event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        const signupForm = document.getElementById('signupForm');
+        if (!signupForm) {
+            console.error('Signup form not found!');
+            return;
+        }
+        
+        // Remove any existing event listeners by cloning the form
+        const newForm = signupForm.cloneNode(true);
+        signupForm.parentNode.replaceChild(newForm, signupForm);
+        
+        // Add single event listener to the new form
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            
+            // Always prevent default first
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            
+            // Validate all fields
+            let errors = [];
+            
+            // Basic field validation
+            if (!username) errors.push('Username is required');
+            if (!email) errors.push('Email is required');
+            if (!password) errors.push('Password is required');
+            if (!confirmPassword) errors.push('Password confirmation is required');
+            
+            // Password match validation
+            if (password && confirmPassword && password !== confirmPassword) {
+                errors.push('Passwords do not match');
+            }
+            
+            // Password policy validation
+            if (password) {
+                const { isValid, requirements } = validatePasswordPolicy(password);
+                if (!isValid) {
+                    let policyErrors = [];
+                    if (!requirements.length) policyErrors.push('at least 9 characters');
+                    if (!requirements.uppercase) policyErrors.push('at least one uppercase letter');
+                    if (!requirements.lowercase) policyErrors.push('at least one lowercase letter');
+                    if (!requirements.number) policyErrors.push('at least one number');
+                    if (!requirements.special) policyErrors.push('at least one special character');
+                    
+                    errors.push('Password must contain: ' + policyErrors.join(', '));
+                }
+            }
+            
+            // If there are validation errors, show them and STOP
+            if (errors.length > 0) {
+                showClientError(errors);
+                return; // Do NOT submit the form
+            }
+            
+            hideClientError();
+            
+            // Show loading state
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('signupSpinner');
+            const btnText = submitBtn.querySelector('span');
+            
+            if (submitBtn && spinner && btnText) {
+                spinner.classList.remove('d-none');
+                btnText.textContent = 'Creating Account...';
+                submitBtn.disabled = true;
+                submitBtn.classList.add('ai-glow');
+            }
+            
+            // Submit the form
+            this.submit();
+        });
+    });
+    
+    // Clear errors when user starts typing
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('#signupForm input');
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                hideClientError();
+            });
+        });
+    });
+    
+</script>
+{% endblock %}

@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+
+{% block title %}Two-Factor Authentication Settings{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i> Two-Factor Authentication
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- MFA Status Card -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="card-title mb-1">
+                                        <i class="fas fa-shield-alt me-2"></i>
+                                        Two-Factor Authentication
+                                    </h5>
+                                    <p class="text-muted mb-0">
+                                        {% if mfa_enabled %}
+                                            <span class="text-success">
+                                                <i class="fas fa-check-circle me-1"></i> Enabled
+                                            </span>
+                                            - Protects your account with an extra layer of security
+                                        {% else %}
+                                            <span class="text-danger">
+                                                <i class="fas fa-times-circle me-1"></i> Disabled
+                                            </span>
+                                            - Your account is not protected with two-factor authentication
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                {% if mfa_enabled %}
+                                    <form method="POST" action="{{ url_for('auth.disable_mfa') }}" class="d-inline">
+                                        <button type="button" 
+                                                class="btn btn-outline-danger" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#disableMfaModal">
+                                            <i class="fas fa-ban me-1"></i> Disable MFA
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <a href="{{ url_for('auth.setup_mfa') }}" class="btn btn-primary">
+                                        <i class="fas fa-shield-alt me-1"></i> Set Up MFA
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if mfa_enabled %}
+                        <!-- Backup Codes Card -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-key me-2"></i>
+                                    Backup Codes
+                                </h5>
+                                <p class="text-muted">
+                                    Save these one-time use codes in a secure place. You can use them to log in if you lose access to your authenticator app.
+                                </p>
+                                
+                                <div class="alert alert-warning">
+                                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Important</h6>
+                                    <ul class="mb-0">
+                                        <li>Each code can only be used once</li>
+                                        <li>Generate new codes if you've used most of them</li>
+                                        <li>Store them in a secure password manager</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('auth.view_backup_codes') }}" 
+                                       class="btn btn-outline-primary">
+                                        <i class="fas fa-eye me-1"></i> View Backup Codes
+                                    </a>
+                                    <form method="POST" action="{{ url_for('auth.regenerate_backup_codes') }}" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-secondary">
+                                            <i class="fas fa-sync-alt me-1"></i> Generate New Codes
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MFA Recovery Options -->
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-mobile-alt me-2"></i>
+                                    Authenticator App
+                                </h5>
+                                <p class="text-muted">
+                                    You're using an authenticator app for two-factor authentication.
+                                </p>
+                                
+                                <div class="d-flex gap-2">
+                                    <button type="button" 
+                                            class="btn btn-outline-primary" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#showQrModal">
+                                        <i class="fas fa-qrcode me-1"></i> Show QR Code
+                                    </button>
+                                    <form method="POST" action="{{ url_for('auth.reset_mfa') }}" class="d-inline">
+                                        <button type="button" 
+                                                class="btn btn-outline-danger" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#resetMfaModal">
+                                            <i class="fas fa-sync-alt me-1"></i> Reset MFA
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <!-- MFA Setup Instructions -->
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Why Enable Two-Factor Authentication?
+                                </h5>
+                                <p class="card-text">
+                                    Two-factor authentication adds an extra layer of security to your account by requiring 
+                                    more than just a password to log in. Even if someone gets your password, they won't 
+                                    be able to access your account without the second factor.
+                                </p>
+                                
+                                <div class="row mt-4">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="d-flex">
+                                            <div class="me-3 text-primary">
+                                                <i class="fas fa-shield-alt fa-2x"></i>
+                                            </div>
+                                            <div>
+                                                <h6>Enhanced Security</h6>
+                                                <p class="text-muted small mb-0">
+                                                    Protects your account from unauthorized access even if your password is compromised.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="d-flex">
+                                            <div class="me-3 text-primary">
+                                                <i class="fas fa-mobile-alt fa-2x"></i>
+                                            </div>
+                                            <div>
+                                                <h6>Easy to Use</h6>
+                                                <p class="text-muted small mb-0">
+                                                    Works with any authenticator app like Google Authenticator or Authy.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center mt-4">
+                                    <a href="{{ url_for('auth.setup_mfa') }}" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-shield-alt me-2"></i> Set Up Two-Factor Authentication
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                        </a>
+                        <small class="text-muted">
+                            <i class="fas fa-shield-alt me-1"></i>
+                            Two-factor authentication is recommended for all users
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Disable MFA Modal -->
+<div class="modal fade" id="disableMfaModal" tabindex="-1" aria-labelledby="disableMfaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="disableMfaModalLabel">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Disable Two-Factor Authentication?
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to disable two-factor authentication for your account?</p>
+                <p class="mb-0">
+                    <strong>Warning:</strong> This will make your account less secure. We recommend keeping 
+                    two-factor authentication enabled for better security.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cancel
+                </button>
+                <form method="POST" action="{{ url_for('auth.disable_mfa') }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-ban me-1"></i> Disable MFA
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Show QR Code Modal -->
+<div class="modal fade" id="showQrModal" tabindex="-1" aria-labelledby="showQrModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="showQrModalLabel">
+                    <i class="fas fa-qrcode me-2"></i>
+                    Authenticator QR Code
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="{{ qr_code_url }}" 
+                     alt="MFA QR Code" 
+                     class="img-thumbnail mb-3"
+                     style="max-width: 200px;">
+                <p class="text-muted small">
+                    Scan this QR code with your authenticator app to add this account.
+                </p>
+                <div class="alert alert-info text-start">
+                    <p class="mb-1"><strong>Or enter this code manually:</strong></p>
+                    <div class="input-group mb-2">
+                        <input type="text" 
+                               class="form-control text-center font-monospace" 
+                               value="{{ secret_key }}" 
+                               id="secretKey" 
+                               readonly>
+                        <button class="btn btn-outline-secondary" 
+                                type="button" 
+                                onclick="copyToClipboard('secretKey')">
+                            <i class="far fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset MFA Modal -->
+<div class="modal fade" id="resetMfaModal" tabindex="-1" aria-labelledby="resetMfaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger" id="resetMfaModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Reset Two-Factor Authentication?
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Important</h6>
+                    <p class="mb-0">
+                        Resetting two-factor authentication will disable it for your account. 
+                        You'll need to set it up again from scratch.
+                    </p>
+                </div>
+                <p class="mb-0">
+                    <strong>Note:</strong> Make sure you have your backup codes saved or access to your 
+                    authenticator app before proceeding.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Cancel
+                </button>
+                <form method="POST" action="{{ url_for('auth.reset_mfa') }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-sync-alt me-1"></i> Reset MFA
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Copy to clipboard function
+function copyToClipboard(elementId) {
+    const copyText = document.getElementById(elementId);
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // For mobile devices
+    
+    // Copy the text inside the text field
+    navigator.clipboard.writeText(copyText.value).then(function() {
+        // Change button text to indicate success
+        const button = event.target.closest('button');
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.classList.add('btn-success');
+        button.classList.remove('btn-outline-secondary');
+        
+        // Reset button after 2 seconds
+        setTimeout(function() {
+            button.innerHTML = originalHTML;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-secondary');
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+
+// Initialize tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+});
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+/* Custom styles for the MFA settings page */
+.card {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+    .card-body {
+        padding: 1.25rem;
+    }
+    
+    .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+}
+
+/* QR code styling */
+.img-thumbnail {
+    padding: 0.5rem;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Alert styling */
+.alert {
+    border: none;
+    border-left: 4px solid;
+    border-radius: 0.375rem;
+}
+
+.alert-warning {
+    border-left-color: #ffc107;
+    background-color: #fff8e1;
+    color: #856404;
+}
+
+.alert-info {
+    border-left-color: #0dcaf0;
+    background-color: #e7f8ff;
+    color: #055160;
+}
+
+/* Modal styling */
+.modal-content {
+    border: none;
+    border-radius: 10px;
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+}
+
+/* Utility classes */
+.font-monospace {
+    font-family: 'Courier New', Courier, monospace;
+}
+</style>
+{% endblock %}

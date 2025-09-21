@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Email Verification - Tarang{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4><i class="fas fa-shield-alt"></i> Email Verification</h4>
+            </div>
+            <div class="card-body">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Success message for OTP sent (show only if no flash messages) -->
+                {% if not get_flashed_messages() %}
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <i class="fas fa-clock me-2"></i>
+                    Please wait for OTP. A verification code has been sent to your email and may take a few seconds to arrive.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+                
+                <div class="text-center mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-20 p-3 mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-shield-alt fa-2x text-success"></i>
+                    </div>
+                    <h5 class="mb-2">Email Verification</h5>
+                    <p class="text-muted">
+                        We've sent a 6-digit verification code to<br>
+                        <strong>{{ user.email }}</strong>
+                    </p>
+                </div>
+                
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="otp_code" class="form-label">Verification Code:</label>
+                        <input 
+                            type="text" 
+                            class="form-control text-center" 
+                            id="otp_code" 
+                            name="otp_code" 
+                            maxlength="6" 
+                            pattern="[0-9]{6}" 
+                            placeholder="000000"
+                            style="font-size: 24px; letter-spacing: 8px; font-weight: bold;"
+                            required 
+                            autofocus
+                        >
+                        <div class="form-text">Enter the 6-digit code from your email</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Verify Code
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <form method="POST" action="{{ url_for('resend_otp') }}" style="display: inline;">
+                        <button type="submit" class="btn btn-link btn-sm">
+                            <i class="fas fa-redo"></i> Resend Code
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        Code expires in 10 minutes<br>
+                        <a href="{{ url_for('login') }}">Back to Login</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-format OTP input
+document.getElementById('otp_code').addEventListener('input', function(e) {
+    // Only allow numbers
+    this.value = this.value.replace(/[^0-9]/g, '');
+    
+    // Auto-submit when 6 digits are entered
+    if (this.value.length === 6) {
+        this.form.submit();
+    }
+});
+
+// Auto-focus and select all on page load
+window.addEventListener('load', function() {
+    const otpInput = document.getElementById('otp_code');
+    otpInput.focus();
+    otpInput.select();
+});
+</script>
+{% endblock %}

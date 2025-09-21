@@ -1,0 +1,56 @@
+# Core Flask
+Flask==2.3.3
+Flask-SocketIO==5.3.6
+Flask-Login==0.6.3
+Flask-WTF==1.1.1
+Flask-Mail==0.9.1
+Flask-SQLAlchemy==3.0.5
+Flask-Migrate==4.0.5
+Flask-Babel==3.1.0
+Flask-Bootstrap==3.3.7.1
+Flask-Limiter==3.5.0
+
+# Database
+SQLAlchemy==2.0.21
+alembic==1.12.1
+psycopg2-binary==2.9.9  # For PostgreSQL support
+
+# Authentication & Security
+Werkzeug==2.3.7
+itsdangerous==2.1.2
+WTForms==3.0.1
+email-validator==2.1.0.post1
+python-jose==3.3.0
+PyJWT==2.8.0
+bcrypt==4.3.0
+cryptography==44.0.3
+
+# WebSocket & Real-time
+python-socketio==5.8.0
+eventlet==0.33.3
+
+# Email
+blinker==1.7.0
+
+# Utilities
+requests==2.32.3
+paramiko==3.5.1
+numpy==2.2.5
+h5py==3.13.0
+matplotlib==3.10.3
+psutil==7.0.0
+python-dateutil==2.9.0.post0
+python-dotenv==1.0.0
+pytz==2023.3
+
+# Development & Testing
+gunicorn==21.2.0
+pytest==7.4.2
+pytest-cov==4.1.0
+coverage==7.3.2
+
+# Monitoring
+sentry-sdk[flask]==1.35.1
+
+# Rate limiting
+limits==3.6.1

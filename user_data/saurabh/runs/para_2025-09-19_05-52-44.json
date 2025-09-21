@@ -1,0 +1,13 @@
+{
+  "process_id": 0,
+  "user": "saurabh",
+  "started_at": "2025-09-19T05:52:44.770502Z",
+  "machine": "Local",
+  "device": "CPU",
+  "dimension": "3",
+  "kind": "HYDRO",
+  "nx": 64,
+  "ny": 64,
+  "nz": 64,
+  "para_file": "user_data/saurabh/runs/para_2025-09-19_05-52-44.py"
+}

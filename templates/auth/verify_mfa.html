@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Your Identity{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i> Two-Factor Authentication Required
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i class="fas fa-mobile-alt fa-4x text-primary"></i>
+                        </div>
+                        <h5>Enter Authentication Code</h5>
+                        <p class="text-muted">
+                            Open your authenticator app and enter the 6-digit code
+                        </p>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('auth.verify_mfa') }}" class="needs-validation" novalidate>
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-4">
+                            <div class="text-center">
+                                <div class="d-inline-block position-relative">
+                                    {{ form.otp(
+                                        class="form-control form-control-lg text-center py-3",
+                                        placeholder="6-digit code",
+                                        inputmode="numeric",
+                                        pattern="\d{6}",
+                                        maxlength="6",
+                                        autofocus,
+                                        autocomplete="one-time-code",
+                                        style="font-size: 1.5rem; letter-spacing: 0.5em; padding-left: 0.75em;"
+                                    ) }}
+                                    <div class="invalid-feedback">
+                                        Please enter a valid 6-digit code
+                                    </div>
+                                </div>
+                            </div>
+                            {% if form.otp.errors %}
+                                <div class="text-danger text-center mt-2">
+                                    {{ form.otp.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check-circle me-2"></i> Verify
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p class="mb-2">
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#recoveryModal">
+                                <i class="fas fa-key me-1"></i> Use a recovery code
+                            </a>
+                        </p>
+                        <p class="text-muted small mb-0">
+                            Having trouble? Contact support if you've lost access to your authenticator app.
+                        </p>
+                    </div>
+                </div>
+                <div class="card-footer bg-light text-center py-3">
+                    <a href="{{ url_for('auth.logout') }}" class="text-muted small">
+                        <i class="fas fa-arrow-left me-1"></i> Back to login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recovery Code Modal -->
+<div class="modal fade" id="recoveryModal" tabindex="-1" aria-labelledby="recoveryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="recoveryModalLabel">
+                    <i class="fas fa-key me-2"></i> Use Recovery Code
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Enter one of your 8-character backup codes you received when you set up two-factor authentication.</p>
+                
+                <form method="POST" action="{{ url_for('auth.verify_mfa_recovery') }}" class="needs-validation" novalidate>
+                    {{ recovery_form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ recovery_form.recovery_code.label(class="form-label") }}
+                        {{ recovery_form.recovery_code(
+                            class="form-control form-control-lg text-uppercase",
+                            placeholder="XXXXXXXX",
+                            autocomplete="one-time-code",
+                            required
+                        ) }}
+                        <div class="invalid-feedback">
+                            Please enter a valid recovery code
+                        </div>
+                        <div class="form-text">
+                            Each code can only be used once. You can generate new codes in your account settings.
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check me-2"></i> Verify Recovery Code
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+// Auto-focus the OTP input when modal is shown
+document.getElementById('recoveryModal').addEventListener('shown.bs.modal', function () {
+    document.getElementById('recovery_code').focus();
+});
+
+// Auto-advance OTP input fields
+const otpInput = document.getElementById('otp');
+if (otpInput) {
+    otpInput.addEventListener('input', function(e) {
+        // Remove any non-digit characters
+        this.value = this.value.replace(/\D/g, '');
+        
+        // Limit to 6 digits
+        if (this.value.length > 6) {
+            this.value = this.value.slice(0, 6);
+        }
+    });
+    
+    // Auto-submit when 6 digits are entered
+    otpInput.addEventListener('keyup', function(e) {
+        if (this.value.length === 6) {
+            this.form.submit();
+        }
+    });
+}
+
+// Enable form validation
+(function () {
+    'use strict'
+    
+    // Fetch all forms we want to apply custom Bootstrap validation styles to
+    var forms = document.querySelectorAll('.needs-validation')
+    
+    // Loop over them and prevent submission
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                
+                form.classList.add('was-validated')
+            }, false)
+        })
+})();
+</script>
+{% endblock %}
+
+{% block styles %}
+<style>
+/* Custom styles for the MFA verification page */
+.card {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-body {
+    padding: 2.5rem;
+}
+
+/* OTP input styling */
+input[type="text"].form-control-lg {
+    font-size: 1.5rem !important;
+    height: auto;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    letter-spacing: 0.5em;
+}
+
+/* Modal styling */
+.modal-content {
+    border: none;
+    border-radius: 10px;
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+}
+
+/* Responsive adjustments */
+@media (max-width: 575.98px) {
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+}
+</style>
+{% endblock %}

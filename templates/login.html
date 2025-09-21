@@ -1,0 +1,553 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Tarang{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center min-vh-100">
+    <div class="col-md-6 col-lg-5 col-xl-4">
+        <!-- Login Card -->
+        <div class="card">
+            <!-- Header -->
+            <div class="card-header text-center border-0 pb-0">
+                <div class="mb-3">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-20 p-3 mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-user fa-2x text-primary"></i>
+                    </div>
+                </div>
+                <h4 class="mb-1">
+                    <i class="fas fa-sign-in-alt me-2"></i>User Login
+                </h4>
+                <p class="text-muted mb-0">
+                    <small>Sign in to your account</small>
+                </p>
+            </div>
+            
+            <!-- Login Form -->
+            <div class="card-body pt-3">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <!-- Client-side Error Messages (only for validation errors) -->
+                <div class="alert alert-danger d-none" id="clientErrorAlert" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="clientErrorMessage"></span>
+                </div>
+                
+                <form method="POST" id="loginForm">
+                    <!-- Login Step -->
+                    <div id="loginStep">
+                        <!-- Username Field -->
+                        <div class="mb-4">
+                            <label for="username" class="form-label">
+                                <i class="fas fa-user me-2"></i>Username
+                            </label>
+                            <div class="position-relative">
+                                <input type="text" class="form-control form-control-enhanced ps-5" id="username" name="username" 
+                                       required>
+                                <i class="fas fa-user position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                            </div>
+                            <div class="invalid-feedback d-none" id="usernameError"></div>
+                        </div>
+                        
+                        <!-- Password Field -->
+                        <div class="mb-4">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Password
+                            </label>
+                            <div class="position-relative">
+                                <input type="password" class="form-control form-control-enhanced ps-5" id="password" name="password" 
+                                       required>
+                                <i class="fas fa-lock position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                <button type="button" class="btn btn-link position-absolute top-50 end-0 translate-middle-y me-2 p-0" 
+                                        onclick="togglePassword()" id="toggleBtn">
+                                    <i class="fas fa-eye text-muted" id="toggleIcon"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback d-none" id="passwordError"></div>
+                        </div>
+                        
+                        
+                        <!-- Login Button -->
+                        <div class="d-grid mb-4">
+                            <button type="button" class="btn btn-primary btn-lg" id="loginBtn">
+                                <i class="fas fa-sign-in-alt me-2" id="loginIcon"></i>
+                                <span id="loginText">Sign In</span>
+                                <div class="spinner-border ms-2 d-none" role="status" id="loginSpinner" style="width: 1.5rem; height: 1.5rem;">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- OTP Step (hidden initially) -->
+                    <div id="otpStep" class="d-none">
+                        <div class="text-center mb-4">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-20 p-3 mb-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-shield-alt fa-2x text-success"></i>
+                            </div>
+                            <h5 class="mb-2">Email Verification</h5>
+                            <p class="text-muted">
+                                We've sent a 6-digit verification code to<br>
+                                <strong id="userEmail"></strong>
+                            </p>
+                        </div>
+                        
+                        <!-- OTP Input -->
+                        <div class="mb-4">
+                            <label for="otp_code" class="form-label">
+                                <i class="fas fa-key me-2"></i>Verification Code
+                            </label>
+                            <div class="position-relative">
+                                <input type="text" class="form-control form-control-enhanced text-center" id="otp_code" name="otp_code" 
+                                       maxlength="6" pattern="[0-9]{6}" placeholder="000000"
+                                       style="font-size: 24px; letter-spacing: 8px; font-weight: bold;" required>
+                                <i class="fas fa-key position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                            </div>
+                            <small class="text-muted">Enter the 6-digit code from your email</small>
+                        </div>
+                        
+                        <!-- Verify Button -->
+                        <div class="d-grid mb-4">
+                            <button type="button" class="btn btn-success btn-lg" id="verifyBtn">
+                                <i class="fas fa-check me-2"></i>
+                                <span>Verify Code</span>
+                                <div class="loading-spinner ms-2 d-none" id="verifySpinner"></div>
+                            </button>
+                        </div>
+                        
+                        <!-- Resend Code -->
+                        <div class="text-center">
+                            <button type="button" class="btn btn-link btn-sm" id="resendBtn">
+                                <i class="fas fa-redo me-1"></i>Resend Code
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                <!-- Forgot Password Link -->
+                <div class="text-center mb-4">
+                    <a href="{{ url_for('forgot_password') }}" class="text-decoration-none">
+                        <small class="text-muted">
+                            <i class="fas fa-key me-1"></i>Forgot your password?
+                        </small>
+                    </a>
+                </div>
+                
+                <!-- Divider -->
+                <div class="text-center mb-4">
+                    <div class="position-relative">
+                        <hr class="my-4">
+                        <span class="position-absolute top-50 start-50 translate-middle bg-light px-3 text-muted">
+                            <small>New User?</small>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Signup Link -->
+                <div class="text-center">
+                    <a href="{{ url_for('signup') }}" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-user-plus me-2"></i>Create Account
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Security Notice -->
+        <div class="text-center mt-4">
+            <small class="text-muted">
+                <i class="fas fa-shield-alt me-1"></i>
+                Your data is protected with secure encryption
+            </small>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Scripts for Login Page -->
+<script>
+    // Password visibility toggle
+    function togglePassword() {
+        const passwordField = document.getElementById('password');
+        const toggleIcon = document.getElementById('toggleIcon');
+        
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            toggleIcon.className = 'fas fa-eye-slash text-muted';
+        } else {
+            passwordField.type = 'password';
+            toggleIcon.className = 'fas fa-eye text-muted';
+        }
+    }
+    
+    // Client-side validation functions
+    function showError(message) {
+        const errorAlert = document.getElementById('clientErrorAlert');
+        const errorMessage = document.getElementById('clientErrorMessage');
+        errorMessage.textContent = message;
+        errorAlert.classList.remove('d-none');
+        
+        // Scroll to error message without animation for better performance
+        errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Auto-hide after 8 seconds for login errors (longer than validation errors)
+        setTimeout(() => {
+            errorAlert.classList.add('d-none');
+        }, 8000);
+    }
+    
+    function hideError() {
+        const errorAlert = document.getElementById('clientErrorAlert');
+        errorAlert.classList.add('d-none');
+    }
+    
+    function setFieldError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const errorDiv = document.getElementById(fieldId + 'Error');
+        
+        field.classList.add('is-invalid');
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('d-none');
+        errorDiv.classList.add('d-block');
+    }
+    
+    function clearFieldError(fieldId) {
+        const field = document.getElementById(fieldId);
+        const errorDiv = document.getElementById(fieldId + 'Error');
+        
+        field.classList.remove('is-invalid');
+        field.classList.add('is-valid');
+        errorDiv.classList.add('d-none');
+        errorDiv.classList.remove('d-block');
+    }
+    
+    function clearAllErrors() {
+        hideError();
+        clearFieldError('username');
+        clearFieldError('password');
+    }
+    
+    function validateForm() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        let isValid = true;
+        
+        clearAllErrors();
+        
+        // Validate username
+        if (!username) {
+            setFieldError('username', 'Username is required');
+            isValid = false;
+        } else if (username.length < 3) {
+            setFieldError('username', 'Username must be at least 3 characters');
+            isValid = false;
+        } else {
+            clearFieldError('username');
+        }
+        
+        // Validate password
+        if (!password) {
+            setFieldError('password', 'Password is required');
+            isValid = false;
+        } else if (password.length < 6) {
+            setFieldError('password', 'Password must be at least 6 characters');
+            isValid = false;
+        } else {
+            clearFieldError('password');
+        }
+        
+        return isValid;
+    }
+    
+    // Login button click handler
+    document.getElementById('loginBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Clear previous errors
+        clearAllErrors();
+
+        // Validate form
+        if (!validateForm()) {
+            return;
+        }
+
+        // Show loading state
+        const loginBtn = document.getElementById('loginBtn');
+        const loginText = document.getElementById('loginText');
+        const loginIcon = document.getElementById('loginIcon');
+        const loginSpinner = document.getElementById('loginSpinner');
+        const form = document.getElementById('loginForm');
+
+        loginBtn.disabled = true;
+        loginText.textContent = ''; // Remove text completely
+        loginIcon.classList.add('d-none');
+        loginSpinner.classList.remove('d-none');
+        loginSpinner.classList.remove('ms-2'); // Remove margin when centered
+        loginSpinner.style.margin = '0 auto'; // Center the spinner
+
+        // Create a timeout for the request
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+        // Get form data
+        const formData = new FormData(form);
+
+        // Submit form via AJAX
+        fetch('{{ url_for("login") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            signal: controller.signal
+        })
+        .then(response => {
+            clearTimeout(timeoutId);
+            return response.json().then(data => {
+                if (!response.ok) {
+                    // Handle HTTP error responses with JSON data
+                    throw { status: response.status, data: data };
+                }
+                return data;
+            });
+        })
+        .then(data => {
+            if (data.success && data.otp_required) {
+                // Keep showing spinner for a moment, then show success message
+                setTimeout(() => {
+                    loginText.textContent = 'Wait for OTP';
+                    loginBtn.className = 'btn btn-info btn-lg';
+                    loginIcon.className = 'fas fa-clock me-2';
+                    loginIcon.classList.remove('d-none');
+                    loginSpinner.classList.add('d-none');
+                    loginSpinner.classList.add('ms-2'); // Restore margin
+                    loginSpinner.style.margin = ''; // Remove inline margin
+                }, 800);
+                
+                // Then redirect to OTP page
+                setTimeout(() => {
+                    window.location.href = '/verify-otp';
+                }, 1800);
+            } else if (data.success && data.redirect) {
+                // If no OTP required, show success then redirect
+                setTimeout(() => {
+                    loginText.textContent = 'Login Successful!';
+                    loginBtn.className = 'btn btn-success btn-lg';
+                    loginIcon.className = 'fas fa-check me-2';
+                    loginIcon.classList.remove('d-none');
+                    loginSpinner.classList.add('d-none');
+                    loginSpinner.classList.add('ms-2'); // Restore margin
+                    loginSpinner.style.margin = ''; // Remove inline margin
+                }, 800);
+                
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 1800);
+            } else if (!data.success) {
+                // Show error message
+                showError(data.message || 'Login failed. Please try again.');
+                resetLoginForm();
+            }
+        })
+        .catch(error => {
+            clearTimeout(timeoutId);
+            console.error('Login error:', error);
+            if (error.name === 'AbortError') {
+                showError('Request timeout. Please try again.');
+            } else if (error.data && error.data.message) {
+                // Handle structured error responses
+                showError(error.data.message);
+                resetLoginForm();
+            } else {
+                showError('An error occurred while processing your request. Please try again.');
+                resetLoginForm();
+            }
+        });
+    });
+    
+    // Show OTP verification step
+    function showOtpStep(email) {
+        document.getElementById('loginStep').classList.add('d-none');
+        document.getElementById('otpStep').classList.remove('d-none');
+        document.getElementById('userEmail').textContent = email;
+        document.getElementById('otp_code').focus();
+    }
+    
+    // Verify OTP button click handler
+    document.getElementById('verifyBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const otpCode = document.getElementById('otp_code').value.trim();
+        
+        if (!otpCode || otpCode.length !== 6) {
+            showError('Please enter a valid 6-digit verification code.');
+            return;
+        }
+        
+        hideError();
+        
+        const verifyBtn = document.getElementById('verifyBtn');
+        const spinner = document.getElementById('verifySpinner');
+        const btnText = verifyBtn.querySelector('span');
+        
+        // Show loading state - optimized
+        spinner.classList.remove('d-none');
+        btnText.textContent = 'Verifying...';
+        verifyBtn.disabled = true;
+        
+        // Submit OTP verification with timeout
+        const otpController = new AbortController();
+        const otpTimeoutId = setTimeout(() => otpController.abort(), 8000); // 8 second timeout
+        
+        fetch('/verify-otp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            credentials: 'same-origin',
+            signal: otpController.signal,
+            body: 'otp_code=' + encodeURIComponent(otpCode)
+        })
+        .then(response => {
+            clearTimeout(otpTimeoutId);
+            if (response.redirected) {
+                // Successful verification - redirect to home
+                window.location.href = response.url;
+            } else if (response.ok) {
+                // Check if it's a successful response but not redirected
+                window.location.href = '/home';
+            } else {
+                return response.text().then(html => {
+                    // Parse error message from response
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const alerts = doc.querySelectorAll('.alert');
+                    let errorMessage = 'Invalid verification code. Please try again.';
+                    
+                    if (alerts.length > 0) {
+                        const alertText = alerts[0].textContent.trim();
+                        // Clean up the alert text
+                        errorMessage = alertText.replace(/[×\s]+$/, '').trim();
+                    }
+                    
+                    showError(errorMessage);
+                    resetVerifyForm();
+                });
+            }
+        })
+        .catch(error => {
+            clearTimeout(otpTimeoutId);
+            console.error('OTP verification error:', error);
+            if (error.name === 'AbortError') {
+                showError('Request timeout. Please try again.');
+            } else {
+                showError('Connection error. Please check your internet connection and try again.');
+            }
+            resetVerifyForm();
+        });
+    });
+    
+    // Resend OTP button click handler
+    document.getElementById('resendBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const resendBtn = document.getElementById('resendBtn');
+        resendBtn.disabled = true;
+        resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending...';
+        
+        fetch('/resend-otp', {
+            method: 'POST',
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (response.ok) {
+                resendBtn.innerHTML = '<i class="fas fa-check me-1"></i>Code Sent!';
+                setTimeout(() => {
+                    resendBtn.innerHTML = '<i class="fas fa-redo me-1"></i>Resend Code';
+                    resendBtn.disabled = false;
+                }, 3000);
+            } else {
+                throw new Error('Failed to resend code');
+            }
+        })
+        .catch(error => {
+            console.error('Resend error:', error);
+            resendBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Failed to Send';
+            showError('Failed to resend verification code. Please try again.');
+            setTimeout(() => {
+                resendBtn.innerHTML = '<i class="fas fa-redo me-1"></i>Resend Code';
+                resendBtn.disabled = false;
+            }, 3000);
+        });
+    });
+    
+    // Helper functions
+    function resetLoginForm() {
+        const loginBtn = document.getElementById('loginBtn');
+        const loginText = document.getElementById('loginText');
+        const loginIcon = document.getElementById('loginIcon');
+        const loginSpinner = document.getElementById('loginSpinner');
+        
+        loginBtn.className = 'btn btn-primary btn-lg';
+        loginBtn.disabled = false;
+        loginText.textContent = 'Sign In';
+        loginIcon.className = 'fas fa-sign-in-alt me-2';
+        loginIcon.classList.remove('d-none');
+        loginSpinner.classList.add('d-none');
+        loginSpinner.classList.add('ms-2'); // Restore margin
+        loginSpinner.style.margin = ''; // Remove inline margin
+    }
+    
+    function resetVerifyForm() {
+        const verifyBtn = document.getElementById('verifyBtn');
+        const spinner = document.getElementById('verifySpinner');
+        const btnText = verifyBtn.querySelector('span');
+        
+        spinner.classList.add('d-none');
+        btnText.textContent = 'Verify Code';
+        verifyBtn.disabled = false;
+    }
+    
+    // Optimized real-time validation with debouncing
+    let validationTimeout;
+    
+    function debounceValidation(callback, delay = 300) {
+        clearTimeout(validationTimeout);
+        validationTimeout = setTimeout(callback, delay);
+    }
+    
+    // Use event delegation for better performance
+    document.addEventListener('blur', function(e) {
+        if (e.target.id === 'username') {
+            const username = e.target.value.trim();
+            if (username && username.length >= 3) {
+                clearFieldError('username');
+            }
+        } else if (e.target.id === 'password') {
+            const password = e.target.value.trim();
+            if (password && password.length >= 6) {
+                clearFieldError('password');
+            }
+        }
+    }, true);
+    
+    // Optimized input event handling
+    document.addEventListener('input', function(e) {
+        if ((e.target.id === 'username' || e.target.id === 'password') && 
+            e.target.classList.contains('is-invalid')) {
+            debounceValidation(() => {
+                e.target.classList.remove('is-invalid');
+            }, 100);
+        }
+    }, true);
+    
+</script>
+{% endblock %}
