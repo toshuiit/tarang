@@ -2099,7 +2099,7 @@ def create_admin_user():
         # Get values from .env with defaults
         admin_email = app.config.get('ADMIN_EMAIL', 'admin@tarang.com')
         admin_username = app.config.get('ADMIN_USERNAME', 'admin')
-        admin_password = app.config.get('ADMIN_PASSWORD', 'admin123')
+        admin_password = app.config.get('ADMIN_PASSWORD', 'XXXXX')
         
         print(f"\n=== Setting up admin user ===")
         print(f"Username: {admin_username}")
